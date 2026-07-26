@@ -1,0 +1,11 @@
+D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\bin\Debug\net10.0\Sasheco.Domain.deps.json
+D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\bin\Debug\net10.0\Sasheco.Domain.dll
+D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\bin\Debug\net10.0\Sasheco.Domain.pdb
+D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\obj\Debug\net10.0\Sasheco.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\obj\Debug\net10.0\Sasheco.Domain.AssemblyInfoInputs.cache
+D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\obj\Debug\net10.0\Sasheco.Domain.AssemblyInfo.cs
+D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\obj\Debug\net10.0\Sasheco.Domain.csproj.CoreCompileInputs.cache
+D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\obj\Debug\net10.0\Sasheco.Domain.dll
+D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\obj\Debug\net10.0\refint\Sasheco.Domain.dll
+D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\obj\Debug\net10.0\Sasheco.Domain.pdb
+D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\obj\Debug\net10.0\ref\Sasheco.Domain.dll
