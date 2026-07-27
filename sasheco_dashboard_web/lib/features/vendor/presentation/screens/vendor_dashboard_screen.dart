@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sasheco_dashboard_web/l10n/app_localizations.dart';
 import 'package:sasheco_dashboard_web/core/widgets/glass_container.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
 import 'package:sasheco_dashboard_web/features/vendor/presentation/cubit/vendor_cubit.dart';
@@ -44,7 +45,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Vendor Directory',
+                    AppLocalizations.of(context)?.vendorManagement ?? 'Vendor Directory',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -58,7 +59,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
               ElevatedButton.icon(
                 onPressed: () => _showCreateVendorDialog(context),
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add Vendor'),
+                label: Text(AppLocalizations.of(context)?.addVendor ?? 'Add Vendor'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -83,7 +84,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                   } else if (state is VendorLoaded) {
                     final vendors = state.vendors;
                     if (vendors.isEmpty) {
-                      return const Center(child: Text('No vendors found. Try adding a new one.', style: TextStyle(color: AppColors.textSecondary)));
+                      return Center(child: Text(AppLocalizations.of(context)?.noVendorsFound ?? 'No vendors found.', style: const TextStyle(color: AppColors.textSecondary)));
                     }
                     return SingleChildScrollView(
                       scrollDirection: Axis.vertical,
@@ -96,13 +97,13 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                           dataRowMinHeight: 48,
                           dataRowMaxHeight: 56,
                           headingRowColor: MaterialStateProperty.all(AppColors.surface),
-                          columns: const [
-                            DataColumn(label: Text('Name', style: TextStyle(fontWeight: FontWeight.w600))),
-                            DataColumn(label: Text('Contact Person', style: TextStyle(fontWeight: FontWeight.w600))),
-                            DataColumn(label: Text('Email', style: TextStyle(fontWeight: FontWeight.w600))),
-                            DataColumn(label: Text('Phone', style: TextStyle(fontWeight: FontWeight.w600))),
-                            DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.w600))),
-                            DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.w600))),
+                          columns: [
+                            DataColumn(label: Text(AppLocalizations.of(context)?.name ?? 'Name', style: const TextStyle(fontWeight: FontWeight.w600))),
+                            DataColumn(label: Text(AppLocalizations.of(context)?.contactPerson ?? 'Contact Person', style: const TextStyle(fontWeight: FontWeight.w600))),
+                            DataColumn(label: Text(AppLocalizations.of(context)?.email ?? 'Email', style: const TextStyle(fontWeight: FontWeight.w600))),
+                            DataColumn(label: Text(AppLocalizations.of(context)?.phone ?? 'Phone', style: const TextStyle(fontWeight: FontWeight.w600))),
+                            DataColumn(label: Text(AppLocalizations.of(context)?.status ?? 'Status', style: const TextStyle(fontWeight: FontWeight.w600))),
+                            DataColumn(label: Text(AppLocalizations.of(context)?.actions ?? 'Actions', style: const TextStyle(fontWeight: FontWeight.w600))),
                           ],
                           rows: vendors.map((vendor) {
                             return DataRow(

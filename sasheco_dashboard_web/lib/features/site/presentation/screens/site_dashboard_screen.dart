@@ -1,79 +1,129 @@
+import 'package:sasheco_dashboard_web/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-class SiteDashboardScreen extends StatelessWidget {
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sasheco_dashboard_web/features/site/presentation/cubit/site_cubit.dart';
+import 'package:sasheco_dashboard_web/features/site/presentation/cubit/site_state.dart';
+import 'package:go_router/go_router.dart';
+class SiteDashboardScreen extends StatefulWidget {
   const SiteDashboardScreen({super.key});
 
   @override
+  State<SiteDashboardScreen> createState() => _SiteDashboardScreenState();
+}
+
+class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SiteCubit>().fetchSiteDashboard();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Colors.transparent, body: 
-      SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildTopBar(context),
-            const SizedBox(height: 24),
-            _buildHeaderCard(context),
-            const SizedBox(height: 24),
-            Row(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: BlocConsumer<SiteCubit, SiteState>(
+        listener: (context, state) {
+          if (state is SiteError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          } else if (state is SiteLocationUpdated) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Site location updated successfully!')),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is SiteLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          String siteName = 'Riyadh Alpha Terminal';
+          
+          if (state is SiteLoaded) {
+            siteName = state.site.projectNameEn;
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  flex: 6,
-                  child: Column(
-                    children: [
-                      Row(
+                _buildHeader(context, siteName),
+                const SizedBox(height: 24),
+                _buildHeaderCard(context),
+                const SizedBox(height: 24),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 6,
+                      child: Column(
                         children: [
-                          Expanded(
-                            child: _buildMetricCard(
-                              context: context,
-                              title: 'Total Contracts',
-                              value: '14',
-                              icon: Icons.description_outlined,
-                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildMetricCard(
+                                  context: context,
+                                  title: 'Total Contracts',
+                                  value: '14',
+                                  icon: Icons.description_outlined,
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                child: _buildMetricCard(
+                                  context: context,
+                                  title: 'Total Addenda',
+                                  value: '6',
+                                  icon: Icons.note_add_outlined,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 24),
-                          Expanded(
-                            child: _buildMetricCard(
-                              context: context,
-                              title: 'Total Addenda',
-                              value: '6',
-                              icon: Icons.note_add_outlined,
-                            ),
-                          ),
+                          const SizedBox(height: 24),
+                          _buildChartCard(context),
                         ],
                       ),
-                      const SizedBox(height: 24),
-                      _buildChartCard(context),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 24),
-                Expanded(
-                  flex: 4,
-                  child: _buildSiteReadinessCard(context),
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      flex: 4,
+                      child: _buildSiteReadinessCard(context),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildTopBar(BuildContext context) {
+  Widget _buildHeader(BuildContext context, String siteName) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          'InfraManager Enterprise Console',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-              ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(AppLocalizations.of(context)?.overview ?? 'Site Operations Overview',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Text(siteName, style: Theme.of(context).textTheme.bodyLarge),
+          ],
         ),
         SizedBox(
           width: 300,
@@ -118,8 +168,7 @@ class SiteDashboardScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(
-                    'Green Valley Infrastructure',
+                  Text(AppLocalizations.of(context)?.greenValleyInfrastructure ?? 'Green Valley Infrastructure',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
@@ -133,8 +182,7 @@ class SiteDashboardScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.grey.shade300),
                     ),
-                    child: Text(
-                      '#PRJ-2024-089',
+                    child: Text(AppLocalizations.of(context)?.prj2024089 ?? '#PRJ-2024-089',
                       style: TextStyle(
                         color: Colors.grey.shade800,
                         fontSize: 12,
@@ -145,8 +193,7 @@ class SiteDashboardScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Active Construction Phase',
+              Text(AppLocalizations.of(context)?.activeConstructionPhase ?? 'Active Construction Phase',
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
               ),
             ],
@@ -154,23 +201,26 @@ class SiteDashboardScreen extends StatelessWidget {
           Row(
             children: [
               OutlinedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Exporting site data...')),
+                  );
+                },
                 icon: const Icon(Icons.download),
-                label: const Text('Export Data'),
+                label: Text(AppLocalizations.of(context)?.exportData ?? 'Export Data'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   side: const BorderSide(color: AppColors.primary),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 ),
               ),
               const SizedBox(width: 16),
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  context.push('/site/mapping');
+                },
                 icon: const Icon(Icons.settings),
-                label: const Text('Manage Site'),
+                label: Text(AppLocalizations.of(context)?.manageSite ?? 'Manage Site'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0F172A), // Dark navy
                   foregroundColor: Colors.white,
@@ -268,8 +318,7 @@ class SiteDashboardScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Contract Activity',
+          Text(AppLocalizations.of(context)?.contractActivity ?? 'Contract Activity',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -409,8 +458,7 @@ class SiteDashboardScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Site Readiness',
+          Text(AppLocalizations.of(context)?.siteReadiness ?? 'Site Readiness',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -446,8 +494,7 @@ class SiteDashboardScreen extends StatelessWidget {
           Center(
             child: TextButton(
               onPressed: () {},
-              child: const Text(
-                'View Full Checklist',
+              child: Text(AppLocalizations.of(context)?.viewFullChecklist ?? 'View Full Checklist',
                 style: TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,

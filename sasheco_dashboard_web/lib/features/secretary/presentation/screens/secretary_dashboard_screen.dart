@@ -1,76 +1,127 @@
 import 'package:flutter/material.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/secretary_cubit.dart';
+import '../cubit/secretary_state.dart';
 
-class SecretaryDashboardScreen extends StatelessWidget {
+class SecretaryDashboardScreen extends StatefulWidget {
   const SecretaryDashboardScreen({super.key});
+
+  @override
+  State<SecretaryDashboardScreen> createState() => _SecretaryDashboardScreenState();
+}
+
+class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
+  Future<void> _pickAndUploadFile() async {
+    FilePickerResult? result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx'],
+      withData: true,
+    );
+
+    if (result != null) {
+      final bytes = result.files.single.bytes;
+      final fileName = result.files.single.name;
+      if (bytes != null && mounted) {
+        context.read<SecretaryCubit>().uploadDocument(bytes, fileName);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
+      body: BlocConsumer<SecretaryCubit, SecretaryState>(
+        listener: (context, state) {
+          if (state is SecretaryTaskOperationSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          } else if (state is SecretaryError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
+        builder: (context, state) {
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Document Drafting Workspace',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Document Drafting Workspace',
+                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Alpha Terminal Expansion - Main Contract',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
+                            ),
+                          ],
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.save),
+                          label: const Text('Save Draft', style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Alpha Terminal Expansion - Main Contract',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppColors.textSecondary,
+                    const SizedBox(height: 24),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: _buildEditorCard(context),
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            children: [
+                              _buildReferenceDocsCard(context),
+                              const SizedBox(height: 24),
+                              _buildAiSuggestionsCard(context),
+                            ],
                           ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.save),
-                  label: const Text('Save Draft', style: TextStyle(fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              if (state is SecretaryLoading)
+                Container(
+                  color: Colors.black12,
+                  child: const Center(
+                    child: CircularProgressIndicator(),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: _buildEditorCard(context),
-                ),
-                const SizedBox(width: 24),
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    children: [
-                      _buildReferenceDocsCard(context),
-                      const SizedBox(height: 24),
-                      _buildAiSuggestionsCard(context),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -139,7 +190,17 @@ class SecretaryDashboardScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Reference Documents', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Reference Documents', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary)),
+              TextButton.icon(
+                onPressed: _pickAndUploadFile,
+                icon: const Icon(Icons.add),
+                label: const Text('Add Reference'),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           _buildDocItem('Engineering Specs.pdf'),
           const SizedBox(height: 8),
@@ -193,9 +254,9 @@ class SecretaryDashboardScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.1),
+              color: AppColors.accent.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+              border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,

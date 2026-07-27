@@ -583,6 +583,37 @@ namespace Sasheco.Infrastructure.Migrations
                     b.ToTable("Sites");
                 });
 
+            modelBuilder.Entity("Sasheco.Domain.Entities.Translation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EntityId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Locale")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Translations");
+                });
+
             modelBuilder.Entity("Sasheco.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")

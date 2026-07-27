@@ -5,6 +5,7 @@ import '../../../../core/shared/network/network_service.dart';
 import '../model/secretary_inbox_item_model.dart';
 import '../model/secretary_task_model.dart';
 import '../model/create_secretary_task_request.dart';
+import 'package:dio/dio.dart';
 
 class SecretaryRepository {
   final NetworkService _networkService;
@@ -69,6 +70,27 @@ class SecretaryRepository {
         return const Right(null);
       } else {
         return Left(ServerFailure('Failed to complete task: ${response.statusCode}'));
+      }
+    } catch (e) {
+      return Left(ErrorHandler.handleException(e));
+    }
+  }
+
+  Future<Either<Failure, void>> uploadDocument(List<int> fileBytes, String fileName) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': MultipartFile.fromBytes(fileBytes, filename: fileName),
+      });
+      
+      final response = await _networkService.post(
+        '/api/secretary/documents/upload',
+        data: formData,
+      );
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return const Right(null);
+      } else {
+        return Left(ServerFailure('Failed to upload document: ${response.statusCode}'));
       }
     } catch (e) {
       return Left(ErrorHandler.handleException(e));

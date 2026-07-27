@@ -24,6 +24,10 @@ import 'package:sasheco_dashboard_web/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sasheco_dashboard_web/features/vendor/presentation/cubit/vendor_cubit.dart';
 import 'package:sasheco_dashboard_web/features/vendor/data/repository/vendor_repository.dart';
+import 'package:sasheco_dashboard_web/features/secretary/presentation/cubit/secretary_cubit.dart';
+import 'package:sasheco_dashboard_web/features/secretary/data/repository/secretary_repository.dart';
+import 'package:sasheco_dashboard_web/features/approval/presentation/cubit/approval_cubit.dart';
+import 'package:sasheco_dashboard_web/features/approval/data/repository/approval_repository.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
@@ -58,6 +62,15 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     networkService = NetworkService();
     authCubit = AuthCubit(AuthRepository(networkService));
+    
+    networkService.getToken = () {
+      final state = authCubit.state;
+      if (state is AuthSuccess) {
+        return state.user.token;
+      }
+      return null;
+    };
+
     _router = createAppRouter(authCubit);
   }
 
@@ -105,6 +118,16 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(
           create: (context) => VendorCubit(
             VendorRepository(networkService),
+          ),
+        ),
+        BlocProvider(
+          create: (context) => SecretaryCubit(
+            SecretaryRepository(networkService),
+          ),
+        ),
+        BlocProvider(
+          create: (context) => ApprovalCubit(
+            ApprovalRepository(networkService),
           ),
         ),
       ],

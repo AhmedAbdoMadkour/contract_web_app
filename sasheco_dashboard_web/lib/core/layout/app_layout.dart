@@ -65,6 +65,7 @@ class AppLayout extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 _buildNavItem(context, 'Dashboard', Icons.dashboard_outlined, '/dashboard'),
+                _buildNavItem(context, 'Users Review', Icons.people_alt_outlined, '/user-review'),
                 _buildNavItem(context, 'Engineering', Icons.engineering_outlined, '/engineering'),
                 _buildNavItem(context, 'Secretary', Icons.description_outlined, '/secretary'),
                 _buildNavItem(context, 'Financial', Icons.account_balance_wallet_outlined, '/financial'),

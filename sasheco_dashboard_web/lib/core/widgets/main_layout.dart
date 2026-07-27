@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
 import 'package:sasheco_dashboard_web/core/widgets/app_background.dart';
+import 'package:sasheco_dashboard_web/l10n/app_localizations.dart';
 
 class MainLayout extends StatelessWidget {
   final Widget child;
@@ -73,14 +74,14 @@ class MainLayout extends StatelessWidget {
                         child: ListView(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           children: [
-                            _buildNavItem(context, 'Dashboard', Icons.dashboard, '/dashboard', location),
-                            _buildNavItem(context, 'Create User', Icons.person_add, '/create-user', location),
-                            _buildNavItem(context, 'Global Permissions', Icons.admin_panel_settings, '/global-permissions', location),
+                            _buildNavItem(context, AppLocalizations.of(context)?.overview ?? 'Dashboard', Icons.dashboard, '/dashboard', location),
+                            _buildNavItem(context, AppLocalizations.of(context)?.createUser ?? 'Create User', Icons.person_add, '/create-user', location),
+                            _buildNavItem(context, AppLocalizations.of(context)?.globalPermissionsControl ?? 'Global Permissions', Icons.admin_panel_settings, '/global-permissions', location),
                             _buildNavItem(context, 'Engineering', Icons.engineering, '/engineering', location),
                             _buildNavItem(context, 'Secretary', Icons.edit_document, '/secretary', location),
-                            _buildNavItem(context, 'Financial', Icons.attach_money, '/financial', location),
+                            _buildNavItem(context, AppLocalizations.of(context)?.sashecoFinancial ?? 'Financial', Icons.attach_money, '/financial', location),
                             _buildNavItem(context, 'Contract Approval', Icons.gavel, '/approval', location),
-                            _buildNavItem(context, 'Vendor Data', Icons.store, '/vendor', location),
+                            _buildNavItem(context, AppLocalizations.of(context)?.vendorManagement ?? 'Vendor Data', Icons.store, '/vendor', location),
                             _buildNavItem(context, 'Site Data', Icons.location_on, '/site', location),
                           ],
                         ),

@@ -4,6 +4,7 @@ import '../../../../flavors.dart';
 
 class NetworkService {
   late final Dio _dio;
+  String? Function()? getToken;
 
   NetworkService() {
     _dio = Dio(
@@ -21,11 +22,12 @@ class NetworkService {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          // TODO: Fetch token from secure storage or state management
-          // final token = await storage.read(key: 'jwt_token');
-          // if (token != null) {
-          //   options.headers['Authorization'] = 'Bearer $token';
-          // }
+          if (getToken != null) {
+            final token = getToken!();
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
+          }
           return handler.next(options);
         },
         onResponse: (response, handler) {

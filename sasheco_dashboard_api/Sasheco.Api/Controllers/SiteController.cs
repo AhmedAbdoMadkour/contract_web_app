@@ -60,6 +60,22 @@ public class SiteController : ControllerBase
         return Ok(sites);
     }
 
+    [HttpGet("dashboard")]
+    public IActionResult GetDashboard()
+    {
+        // Mock dashboard data for UI flow
+        return Ok(new
+        {
+            projectCode = "PRJ-2024-089",
+            projectNameEn = "Alpha Terminal Site",
+            projectNameAr = "موقع ألفا",
+            totalContracts = 14,
+            totalAddenda = 6,
+            activeValue = "$2,500,000",
+            contracts = new object[] {}
+        });
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {

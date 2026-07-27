@@ -43,4 +43,13 @@ class SecretaryCubit extends Cubit<SecretaryState> {
       (_) => emit(const SecretaryTaskOperationSuccess("Task completed successfully")),
     );
   }
+
+  Future<void> uploadDocument(List<int> fileBytes, String fileName) async {
+    emit(SecretaryLoading());
+    final result = await _repository.uploadDocument(fileBytes, fileName);
+    result.fold(
+      (failure) => emit(SecretaryError(failure.message)),
+      (_) => emit(const SecretaryTaskOperationSuccess("Document uploaded successfully")),
+    );
+  }
 }

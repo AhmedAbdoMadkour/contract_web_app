@@ -41,8 +41,9 @@ class _CreateEngineeringProjectScreenState extends State<CreateEngineeringProjec
   }  
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Colors.transparent, body: 
-      child: SingleChildScrollView(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +120,9 @@ class _CreateEngineeringProjectScreenState extends State<CreateEngineeringProjec
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
                           child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
                         ),
                         const SizedBox(width: 16),
@@ -204,11 +207,11 @@ class _CreateEngineeringProjectScreenState extends State<CreateEngineeringProjec
             hintText: hint,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.surfaceVariant),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.surfaceVariant),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
@@ -241,11 +244,11 @@ class _CreateEngineeringProjectScreenState extends State<CreateEngineeringProjec
           decoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.surfaceVariant),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.surfaceVariant),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
@@ -291,11 +294,11 @@ class _CreateEngineeringProjectScreenState extends State<CreateEngineeringProjec
             suffixIcon: const Icon(Icons.calendar_today, color: AppColors.textSecondary),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.surfaceVariant),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.surfaceVariant),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),

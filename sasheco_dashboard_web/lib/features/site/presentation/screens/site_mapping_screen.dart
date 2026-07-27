@@ -24,8 +24,9 @@ class _SiteMappingScreenState extends State<SiteMappingScreen> {
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Colors.transparent, body: 
-      child: SingleChildScrollView(
+    return Scaffold(
+      backgroundColor: Colors.transparent, 
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,7 +193,7 @@ class _SiteMappingScreenState extends State<SiteMappingScreen> {
       decoration: BoxDecoration(
         color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.surfaceVariant),
+        border: Border.all(color: Colors.grey.shade300),
       ),
       child: Stack(
         children: [
@@ -254,7 +255,7 @@ class _SiteMappingScreenState extends State<SiteMappingScreen> {
   Widget _buildBoundaryList() {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.surfaceVariant),
+        border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -310,11 +311,11 @@ class _SiteMappingScreenState extends State<SiteMappingScreen> {
             hintText: hint,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.surfaceVariant),
+              borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.surfaceVariant),
+              borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
@@ -347,11 +348,11 @@ class _SiteMappingScreenState extends State<SiteMappingScreen> {
           decoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.surfaceVariant),
+              borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.surfaceVariant),
+              borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),

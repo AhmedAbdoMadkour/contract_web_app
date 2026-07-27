@@ -17,3 +17,4 @@ D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Infrastructure\
 D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Infrastructure\obj\Debug\net10.0\Sasheco.Infrastructure.pdb
 D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Infrastructure\obj\Debug\net10.0\Sasheco.Infrastructure.genruntimeconfig.cache
 D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Infrastructure\obj\Debug\net10.0\ref\Sasheco.Infrastructure.dll
+D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Infrastructure\obj\Debug\net10.0\Sasheco.Infrastructure.sourcelink.json

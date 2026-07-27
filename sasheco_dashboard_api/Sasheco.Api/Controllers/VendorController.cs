@@ -32,16 +32,17 @@ public class VendorController : ControllerBase
     {
         _logger.LogInformation("Getting vendors");
         
+        var language = Request.Headers["Accept-Language"].ToString();
+        bool isArabic = language.StartsWith("ar");
+        
         var vendors = await _context.Vendors
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(v => new VendorDto
             {
                 Id = v.Id,
-                NameEn = v.NameEn,
-                NameAr = v.NameAr,
-                ContactPersonEn = v.ContactPersonEn,
-                ContactPersonAr = v.ContactPersonAr,
+                Name = isArabic && !string.IsNullOrEmpty(v.NameAr) ? v.NameAr : v.NameEn,
+                ContactPerson = isArabic && !string.IsNullOrEmpty(v.ContactPersonAr) ? v.ContactPersonAr : v.ContactPersonEn,
                 Email = v.Email,
                 Phone = v.Phone,
                 Status = v.Status,
@@ -57,15 +58,16 @@ public class VendorController : ControllerBase
     {
         _logger.LogInformation("Getting vendor {Id}", id);
         
+        var language = Request.Headers["Accept-Language"].ToString();
+        bool isArabic = language.StartsWith("ar");
+        
         var vendor = await _context.Vendors
             .Where(v => v.Id == id)
             .Select(v => new VendorDto
             {
                 Id = v.Id,
-                NameEn = v.NameEn,
-                NameAr = v.NameAr,
-                ContactPersonEn = v.ContactPersonEn,
-                ContactPersonAr = v.ContactPersonAr,
+                Name = isArabic && !string.IsNullOrEmpty(v.NameAr) ? v.NameAr : v.NameEn,
+                ContactPerson = isArabic && !string.IsNullOrEmpty(v.ContactPersonAr) ? v.ContactPersonAr : v.ContactPersonEn,
                 Email = v.Email,
                 Phone = v.Phone,
                 Status = v.Status,
@@ -99,13 +101,14 @@ public class VendorController : ControllerBase
         _context.Vendors.Add(vendor);
         await _context.SaveChangesAsync(cancellationToken);
 
+        var language = Request.Headers["Accept-Language"].ToString();
+        bool isArabic = language.StartsWith("ar");
+        
         var dto = new VendorDto
         {
             Id = vendor.Id,
-            NameEn = vendor.NameEn,
-            NameAr = vendor.NameAr,
-            ContactPersonEn = vendor.ContactPersonEn,
-            ContactPersonAr = vendor.ContactPersonAr,
+            Name = isArabic && !string.IsNullOrEmpty(vendor.NameAr) ? vendor.NameAr : vendor.NameEn,
+            ContactPerson = isArabic && !string.IsNullOrEmpty(vendor.ContactPersonAr) ? vendor.ContactPersonAr : vendor.ContactPersonEn,
             Email = vendor.Email,
             Phone = vendor.Phone,
             Status = vendor.Status,

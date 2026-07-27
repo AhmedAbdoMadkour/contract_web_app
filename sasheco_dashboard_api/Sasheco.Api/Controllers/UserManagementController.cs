@@ -84,6 +84,11 @@ namespace Sasheco.Api.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
+            if (role == null)
+            {
+                role = await _context.Roles.FirstOrDefaultAsync(cancellationToken);
+            }
+
             if (role != null)
             {
                 user.RoleId = role.Id;

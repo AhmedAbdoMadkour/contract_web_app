@@ -2,50 +2,104 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
 import '../cubit/approval_cubit.dart';
+import '../cubit/approval_state.dart';
 
-class ApprovalDashboardScreen extends StatelessWidget {
+class ApprovalDashboardScreen extends StatefulWidget {
   const ApprovalDashboardScreen({super.key});
+
+  @override
+  State<ApprovalDashboardScreen> createState() => _ApprovalDashboardScreenState();
+}
+
+class _ApprovalDashboardScreenState extends State<ApprovalDashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ApprovalCubit>().fetchApprovals();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context),
-            const SizedBox(height: 24),
-            _buildKPICards(context),
-            const SizedBox(height: 24),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: _buildDocumentViewer(context),
+      body: BlocConsumer<ApprovalCubit, ApprovalState>(
+        listener: (context, state) {
+          if (state is ApprovalActionSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          } else if (state is ApprovalError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
+        builder: (context, state) {
+          String? currentId;
+          String currentStatus = 'Ready';
+          if (state is ApprovalLoaded && state.approvals.isNotEmpty) {
+            currentId = state.approvals.first.id;
+            currentStatus = state.approvals.first.status;
+          } else if (state is ApprovalActionSuccess && state.currentApprovals.isNotEmpty) {
+            currentId = state.currentApprovals.first.id;
+            currentStatus = state.currentApprovals.first.status;
+          }
+
+          if (currentId == null && state is ApprovalLoaded) {
+            return const Center(child: Text("No pending approvals found."));
+          }
+
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(context, currentId),
+                    const SizedBox(height: 24),
+                    _buildKPICards(context, currentStatus),
+                    const SizedBox(height: 24),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: _buildDocumentViewer(context),
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            children: [
+                              _buildRiskAssessment(context),
+                              const SizedBox(height: 24),
+                              _buildAuditTrail(context),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 24),
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    children: [
-                      _buildRiskAssessment(context),
-                      const SizedBox(height: 24),
-                      _buildAuditTrail(context),
-                    ],
+              ),
+              if (state is ApprovalLoading || state is ApprovalActionLoading)
+                Container(
+                  color: Colors.black12,
+                  child: const Center(
+                    child: CircularProgressIndicator(),
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, String? currentId) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -71,8 +125,8 @@ class ApprovalDashboardScreen extends StatelessWidget {
         Row(
           children: [
             OutlinedButton(
-              onPressed: () {
-                context.read<ApprovalCubit>().rejectRequest('CTR-2026-001');
+              onPressed: currentId == null ? null : () {
+                context.read<ApprovalCubit>().rejectRequest(currentId);
               },
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.red,
@@ -84,8 +138,8 @@ class ApprovalDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             ElevatedButton.icon(
-              onPressed: () {
-                context.read<ApprovalCubit>().approveRequest('CTR-2026-001');
+              onPressed: currentId == null ? null : () {
+                context.read<ApprovalCubit>().approveRequest(currentId);
               },
               icon: const Icon(Icons.check_circle_outline),
               label: const Text('Approve Contract', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -102,7 +156,7 @@ class ApprovalDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildKPICards(BuildContext context) {
+  Widget _buildKPICards(BuildContext context, String currentStatus) {
     return Row(
       children: [
         Expanded(child: _buildKPICard(context, 'Contract Value', '\$2,500,000.00', Icons.attach_money, AppColors.primary)),
@@ -111,7 +165,7 @@ class ApprovalDashboardScreen extends StatelessWidget {
         const SizedBox(width: 16),
         Expanded(child: _buildKPICard(context, 'Pending Depts', '0', Icons.pending_actions, AppColors.textSecondary)),
         const SizedBox(width: 16),
-        Expanded(child: _buildKPICard(context, 'Status', 'Ready', Icons.check_circle, AppColors.success)),
+        Expanded(child: _buildKPICard(context, 'Status', currentStatus, Icons.check_circle, AppColors.success)),
       ],
     );
   }
@@ -222,9 +276,9 @@ class ApprovalDashboardScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.1),
+              color: AppColors.success.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.success.withOpacity(0.3)),
+              border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
             ),
             child: const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,9 +302,9 @@ class ApprovalDashboardScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.warning.withOpacity(0.1),
+              color: AppColors.warning.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+              border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
             ),
             child: const Row(
               crossAxisAlignment: CrossAxisAlignment.start,

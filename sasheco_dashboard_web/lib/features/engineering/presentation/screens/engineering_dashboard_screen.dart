@@ -1,8 +1,14 @@
+import 'package:sasheco_dashboard_web/l10n/app_localizations.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:desktop_drop/desktop_drop.dart';
+import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sasheco_dashboard_web/features/engineering/presentation/cubit/engineering_cubit.dart';
+import 'package:sasheco_dashboard_web/features/engineering/presentation/cubit/engineering_state.dart';
 
 class EngineeringDashboardScreen extends StatefulWidget {
   const EngineeringDashboardScreen({super.key});
@@ -13,15 +19,47 @@ class EngineeringDashboardScreen extends StatefulWidget {
 
 class _EngineeringDashboardScreenState extends State<EngineeringDashboardScreen> {
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EngineeringCubit>().fetchProjects();
+    });
+  }
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context),
+      body: BlocConsumer<EngineeringCubit, EngineeringState>(
+        listener: (context, state) {
+          if (state is EngineeringStatusUpdated) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Project status updated successfully!')),
+            );
+          } else if (state is EngineeringError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is EngineeringLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          String projectName = AppLocalizations.of(context)?.projectAlphaTerminalExpansion ?? 'Project: Alpha Terminal Expansion';
+          String projectId = '';
+          
+          if (state is EngineeringProjectsLoaded && state.projects.isNotEmpty) {
+            projectName = state.projects.first.name;
+            projectId = state.projects.first.id;
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context, projectName, projectId),
             const SizedBox(height: 24),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,29 +80,29 @@ class _EngineeringDashboardScreenState extends State<EngineeringDashboardScreen>
             const SizedBox(height: 24),
             _ProjectDrawingsCard(),
             const SizedBox(height: 48),
-          ],
-        ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, String projectName, String projectId) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Contract Details',
+            Text(AppLocalizations.of(context)?.contractDetails ?? 'Contract Details',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
             ),
             const SizedBox(height: 4),
-            Text(
-              'Project: Alpha Terminal Expansion',
+            Text(projectName,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -74,7 +112,11 @@ class _EngineeringDashboardScreenState extends State<EngineeringDashboardScreen>
         Row(
           children: [
             OutlinedButton(
-              onPressed: () {},
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Exporting PDF...')),
+                );
+              },
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: AppColors.primary,
@@ -88,7 +130,15 @@ class _EngineeringDashboardScreenState extends State<EngineeringDashboardScreen>
             ),
             const SizedBox(width: 16),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                if (projectId.isNotEmpty) {
+                  context.read<EngineeringCubit>().updateProjectStatus(projectId, 'Approved');
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('No project selected to save changes.')),
+                  );
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -142,18 +192,18 @@ class _ContractItemsCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Contract Items Definition',
+              Text(AppLocalizations.of(context)?.contractItemsDefinition ?? 'Contract Items Definition',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
                     ),
               ),
               TextButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  context.push('/engineering/create');
+                },
                 icon: const Icon(Icons.add, color: AppColors.primary),
-                label: const Text(
-                  'Add Item',
+                label: Text(AppLocalizations.of(context)?.addItem ?? 'Add Item',
                   style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -164,12 +214,12 @@ class _ContractItemsCard extends StatelessWidget {
             width: double.infinity,
             child: DataTable(
               headingRowColor: const WidgetStatePropertyAll(AppColors.background),
-              columns: const [
-                DataColumn(label: Text('Item ID')),
-                DataColumn(label: Text('Description')),
-                DataColumn(label: Text('Category')),
-                DataColumn(label: Text('Status')),
-                DataColumn(label: Text('Actions')),
+              columns: [
+                DataColumn(label: Text(AppLocalizations.of(context)?.itemId ?? 'Item ID')),
+                DataColumn(label: Text(AppLocalizations.of(context)?.description ?? 'Description')),
+                DataColumn(label: Text(AppLocalizations.of(context)?.category ?? 'Category')),
+                DataColumn(label: Text(AppLocalizations.of(context)?.status ?? 'Status')),
+                DataColumn(label: Text(AppLocalizations.of(context)?.actions ?? 'Actions')),
               ],
               rows: [
                 _buildItemRow('ITM-001', 'Foundation Concrete', 'Materials', 'Approved', AppColors.success),
@@ -228,8 +278,7 @@ class _TermsAndConditionsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Terms & Conditions',
+          Text(AppLocalizations.of(context)?.termsConditions ?? 'Terms & Conditions',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -278,8 +327,7 @@ class _PricingAndQuantitiesCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Pricing & Quantities',
+              Text(AppLocalizations.of(context)?.pricingQuantities ?? 'Pricing & Quantities',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
@@ -299,12 +347,12 @@ class _PricingAndQuantitiesCard extends StatelessWidget {
             width: double.infinity,
             child: DataTable(
               headingRowColor: const WidgetStatePropertyAll(AppColors.background),
-              columns: const [
-                DataColumn(label: Text('Item ID')),
-                DataColumn(label: Text('Description')),
-                DataColumn(label: Text('QTY')),
-                DataColumn(label: Text('UNIT PRICE')),
-                DataColumn(label: Text('TOTAL')),
+              columns: [
+                DataColumn(label: Text(AppLocalizations.of(context)?.itemId ?? 'Item ID')),
+                DataColumn(label: Text(AppLocalizations.of(context)?.description ?? 'Description')),
+                DataColumn(label: Text(AppLocalizations.of(context)?.qty ?? 'QTY')),
+                DataColumn(label: Text(AppLocalizations.of(context)?.unitPrice ?? 'UNIT PRICE')),
+                DataColumn(label: Text(AppLocalizations.of(context)?.total ?? 'TOTAL')),
               ],
               rows: [
                 _buildPricingRow('ITM-001', 'Foundation Concrete', '500', '1200.00', '\$600,000.00'),
@@ -378,8 +426,7 @@ class _ProjectDrawingsCardState extends State<_ProjectDrawingsCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Project Drawings',
+          Text(AppLocalizations.of(context)?.projectDrawings ?? 'Project Drawings',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -437,8 +484,7 @@ class _ProjectDrawingsCardState extends State<_ProjectDrawingsCard> {
                               color: _isDragging ? AppColors.primary : AppColors.textSecondary,
                             ),
                             const SizedBox(height: 12),
-                            Text(
-                              'Drag and drop files here',
+                            Text(AppLocalizations.of(context)?.dragAndDropFilesHere ?? 'Drag and drop files here',
                               style: TextStyle(
                                 color: _isDragging ? AppColors.primary : AppColors.textSecondary,
                                 fontWeight: FontWeight.bold,
@@ -451,7 +497,7 @@ class _ProjectDrawingsCardState extends State<_ProjectDrawingsCard> {
                                   _uploadedFiles.add('mock_file.pdf');
                                 });
                               },
-                              child: const Text('Browse Files'),
+                              child: Text(AppLocalizations.of(context)?.browseFiles ?? 'Browse Files'),
                             ),
                           ],
                         ),

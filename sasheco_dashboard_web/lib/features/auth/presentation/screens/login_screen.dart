@@ -60,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(Icons.dashboard, size: 64, color: AppColors.primary),
+                    Image.asset('assets/images/logo.png', height: 64),
                     const SizedBox(height: 24),
                     Text(
                       l10n!.loginTitle,

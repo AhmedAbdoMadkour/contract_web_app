@@ -9,3 +9,4 @@ D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\obj\Debu
 D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\obj\Debug\net10.0\refint\Sasheco.Domain.dll
 D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\obj\Debug\net10.0\Sasheco.Domain.pdb
 D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\obj\Debug\net10.0\ref\Sasheco.Domain.dll
+D:\programming\projects\sasheco-v1\sasheco_dashboard_api\Sasheco.Domain\obj\Debug\net10.0\Sasheco.Domain.sourcelink.json

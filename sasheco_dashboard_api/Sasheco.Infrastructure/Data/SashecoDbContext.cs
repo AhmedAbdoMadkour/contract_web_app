@@ -24,6 +24,7 @@ public class SashecoDbContext : DbContext
     public DbSet<SecretaryInboxItem> SecretaryInboxItems { get; set; }
     public DbSet<SecretaryDocument> SecretaryDocuments { get; set; }
     public DbSet<Site> Sites { get; set; }
+    public DbSet<Translation> Translations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

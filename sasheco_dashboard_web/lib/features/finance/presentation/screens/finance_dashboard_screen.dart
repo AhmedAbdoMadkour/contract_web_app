@@ -10,8 +10,9 @@ class FinanceDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Colors.transparent, body: 
-      child: Column(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header Zone
@@ -146,7 +147,7 @@ class FinanceDashboardScreen extends StatelessWidget {
                                 valueColor: AppColors.textPrimary,
                               ),
                             ),
-                            Container(width: 1, height: 50, color: AppColors.surfaceVariant),
+                            Container(width: 1, height: 50, color: AppColors.border),
                             Expanded(
                               child: _buildMetricItem(
                                 title: 'DISBURSED AMOUNT',
@@ -156,7 +157,7 @@ class FinanceDashboardScreen extends StatelessWidget {
                                 iconColor: AppColors.success,
                               ),
                             ),
-                            Container(width: 1, height: 50, color: AppColors.surfaceVariant),
+                            Container(width: 1, height: 50, color: AppColors.border),
                             Expanded(
                               child: _buildMetricItem(
                                 title: 'REMAINING BALANCE',
@@ -186,7 +187,7 @@ class FinanceDashboardScreen extends StatelessWidget {
                                 child: const LinearProgressIndicator(
                                   value: 0.68,
                                   minHeight: 12,
-                                  backgroundColor: AppColors.surfaceVariant,
+                                  backgroundColor: AppColors.border,
                                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                                 ),
                               ),
@@ -385,7 +386,7 @@ class FinanceDashboardScreen extends StatelessWidget {
   Widget _buildDataTable() {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.surfaceVariant),
+        border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(12),
       ),
       child: ClipRRect(

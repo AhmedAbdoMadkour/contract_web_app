@@ -12,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<Sasheco.Application.Interfaces.ILocaleService, Sasheco.Api.Services.LocaleService>();
 
 // Configure Validation
 builder.Services.AddValidatorsFromAssemblyContaining<Sasheco.Application.Auth.Validators.LoginRequestValidator>();

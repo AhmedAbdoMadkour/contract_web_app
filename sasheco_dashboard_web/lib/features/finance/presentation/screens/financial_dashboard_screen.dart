@@ -1,28 +1,69 @@
+import 'package:sasheco_dashboard_web/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
 
-class FinancialDashboardScreen extends StatelessWidget {
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sasheco_dashboard_web/features/finance/presentation/cubit/finance_cubit.dart';
+import 'package:sasheco_dashboard_web/features/finance/presentation/cubit/finance_state.dart';
+import 'package:sasheco_dashboard_web/features/finance/data/model/finance_report_model.dart';
+import 'package:sasheco_dashboard_web/features/finance/data/model/transaction_model.dart';
+import 'package:intl/intl.dart';
+
+class FinancialDashboardScreen extends StatefulWidget {
   const FinancialDashboardScreen({super.key});
+
+  @override
+  State<FinancialDashboardScreen> createState() => _FinancialDashboardScreenState();
+}
+
+class _FinancialDashboardScreenState extends State<FinancialDashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FinanceCubit>().fetchDashboardData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context),
+      body: BlocConsumer<FinanceCubit, FinanceState>(
+        listener: (context, state) {
+          if (state.creationStatus == TransactionCreationStatus.success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Transaction processed successfully!')),
+            );
+          } else if (state.status == FinanceStatus.error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.errorMessage ?? 'Error')),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state.status == FinanceStatus.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final report = state.report;
+          final transactions = state.transactions;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context),
             const SizedBox(height: 24),
-            _buildKPICards(context),
+            _buildKPICards(context, report),
             const SizedBox(height: 24),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   flex: 2,
-                  child: _buildPaymentSchedule(context),
+                  child: _buildPaymentSchedule(context, transactions),
                 ),
                 const SizedBox(width: 24),
                 Expanded(
@@ -33,6 +74,8 @@ class FinancialDashboardScreen extends StatelessWidget {
             ),
           ],
         ),
+      );
+      },
       ),
     );
   }
@@ -44,16 +87,14 @@ class FinancialDashboardScreen extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Financial Overview',
+            Text(AppLocalizations.of(context)?.financialOverview ?? 'Financial Overview',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
             ),
             const SizedBox(height: 4),
-            Text(
-              'Project: Alpha Terminal Expansion',
+            Text(AppLocalizations.of(context)?.projectAlphaTerminalExpansion ?? 'Project: Alpha Terminal Expansion',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -61,9 +102,13 @@ class FinancialDashboardScreen extends StatelessWidget {
           ],
         ),
         ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Financials Approved!')),
+            );
+          },
           icon: const Icon(Icons.check_circle_outline),
-          label: const Text('Approve Financials', style: TextStyle(fontWeight: FontWeight.bold)),
+          label: Text(AppLocalizations.of(context)?.approveFinancials ?? 'Approve Financials', style: const TextStyle(fontWeight: FontWeight.bold)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.success,
             foregroundColor: Colors.white,
@@ -75,16 +120,14 @@ class FinancialDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildKPICards(BuildContext context) {
+  Widget _buildKPICards(BuildContext context, FinanceReportModel? report) {
     return Row(
       children: [
-        Expanded(child: _buildKPICard(context, 'Total Contract Value', '\$2,500,000.00', Icons.attach_money, AppColors.primary)),
+        Expanded(child: _buildKPICard(context, 'Total Revenue', report != null ? NumberFormat.currency(symbol: '\$').format(report.totalRevenue) : '\$0.00', Icons.attach_money, AppColors.primary)),
         const SizedBox(width: 16),
-        Expanded(child: _buildKPICard(context, 'Advance Payment', '\$250,000.00', Icons.account_balance_wallet, AppColors.accent)),
+        Expanded(child: _buildKPICard(context, 'Total Expenses', report != null ? NumberFormat.currency(symbol: '\$').format(report.totalExpenses) : '\$0.00', Icons.money_off, AppColors.accent)),
         const SizedBox(width: 16),
-        Expanded(child: _buildKPICard(context, 'Retention Amount', '\$250,000.00 (10%)', Icons.lock_outline, AppColors.warning)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildKPICard(context, 'Amount Paid to Date', '\$0.00', Icons.check_circle_outline, AppColors.success)),
+        Expanded(child: _buildKPICard(context, 'Net Income', report != null ? NumberFormat.currency(symbol: '\$').format(report.netIncome) : '\$0.00', Icons.account_balance_wallet, AppColors.success)),
       ],
     );
   }
@@ -116,7 +159,7 @@ class FinancialDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPaymentSchedule(BuildContext context) {
+  Widget _buildPaymentSchedule(BuildContext context, List<TransactionModel> transactions) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -134,7 +177,15 @@ class FinancialDashboardScreen extends StatelessWidget {
             children: [
               Text('Payment Schedule', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary)),
               OutlinedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  context.read<FinanceCubit>().createTransaction(TransactionModel(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    description: 'New Milestone',
+                    amount: 50000.0,
+                    date: DateTime.now(),
+                    type: 'Income'
+                  ));
+                },
                 icon: const Icon(Icons.add),
                 label: const Text('Add Milestone'),
               )
@@ -145,19 +196,21 @@ class FinancialDashboardScreen extends StatelessWidget {
             width: double.infinity,
             child: DataTable(
               headingRowColor: const WidgetStatePropertyAll(AppColors.background),
-              columns: const [
-                DataColumn(label: Text('Milestone')),
-                DataColumn(label: Text('Percentage')),
-                DataColumn(label: Text('Amount')),
-                DataColumn(label: Text('Status')),
-                DataColumn(label: Text('Action')),
+              columns: [
+                const DataColumn(label: Text('Transaction ID')),
+                DataColumn(label: Text(AppLocalizations.of(context)?.description ?? 'Description')),
+                const DataColumn(label: Text('Amount')),
+                DataColumn(label: Text(AppLocalizations.of(context)?.status ?? 'Type')),
+                const DataColumn(label: Text('Action')),
               ],
-              rows: [
-                _buildPaymentRow('Advance Payment', '10%', '\$250,000.00', 'Paid', AppColors.success),
-                _buildPaymentRow('50% Completion', '40%', '\$1,000,000.00', 'Pending', AppColors.warning),
-                _buildPaymentRow('Practical Completion', '40%', '\$1,000,000.00', 'Future', AppColors.textSecondary),
-                _buildPaymentRow('Final Retention', '10%', '\$250,000.00', 'Future', AppColors.textSecondary),
-              ],
+              rows: transactions.map((t) => _buildPaymentRow(
+                t.id, 
+                t.description, 
+                NumberFormat.currency(symbol: '\$').format(t.amount.abs()), 
+                t.type, 
+                t.type == 'Income' ? AppColors.success : AppColors.warning,
+                context
+              )).toList(),
             ),
           ),
         ],
@@ -165,11 +218,11 @@ class FinancialDashboardScreen extends StatelessWidget {
     );
   }
 
-  DataRow _buildPaymentRow(String milestone, String percentage, String amount, String status, Color statusColor) {
+  DataRow _buildPaymentRow(String id, String desc, String amount, String type, Color statusColor, BuildContext context) {
     return DataRow(
       cells: [
-        DataCell(Text(milestone, style: const TextStyle(fontWeight: FontWeight.w500))),
-        DataCell(Text(percentage)),
+        DataCell(Text(id, style: const TextStyle(fontWeight: FontWeight.w500))),
+        DataCell(Text(desc)),
         DataCell(Text(amount, style: const TextStyle(fontWeight: FontWeight.bold))),
         DataCell(
           Container(
@@ -180,14 +233,18 @@ class FinancialDashboardScreen extends StatelessWidget {
               border: Border.all(color: statusColor.withOpacity(0.3)),
             ),
             child: Text(
-              status,
+              type,
               style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
             ),
           ),
         ),
         DataCell(
           ElevatedButton(
-            onPressed: status == 'Pending' ? () {} : null,
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Processing payment...')),
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
