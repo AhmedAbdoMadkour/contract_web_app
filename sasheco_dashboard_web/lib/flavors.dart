@@ -22,11 +22,11 @@ class F {
   static String get apiBaseUrl {
     switch (appFlavor) {
       case Flavor.development:
-        return 'http://localhost:5191/';
+        return 'http://localhost:5000/';
       case Flavor.production:
         return 'https://api.sasheco.com/';
       default:
-        return 'http://localhost:5191/';
+        return 'http://localhost:5000/';
     }
   }
 }

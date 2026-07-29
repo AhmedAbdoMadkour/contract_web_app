@@ -36,7 +36,11 @@ builder.Services.AddCors(options =>
 
 // Configure EF Core DbContext
 builder.Services.AddDbContext<SashecoDbContext>(options =>
-    options.UseSqlite("Data Source=sasheco.db"));
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+                           ?? "Server=localhost,1433;Database=SashecoDb;User Id=SA;Password=Sasheco_Super_Secret_Password_2026!;TrustServerCertificate=True";
+    options.UseSqlServer(connectionString);
+});
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -70,6 +74,8 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<SashecoDbContext>();
+    await dbContext.Database.MigrateAsync();
     await Sasheco.Infrastructure.Data.DataSeeder.SeedAsync(app.Services);
 }
 
