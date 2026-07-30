@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
 
@@ -27,20 +28,26 @@ class GlassContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final defaultBorderRadius = borderRadius ?? BorderRadius.circular(8);
 
-    return Container(
-      width: width,
-      height: height,
-      margin: margin,
-      padding: padding,
-      decoration: BoxDecoration(
-        color: color ?? AppColors.surface,
-        borderRadius: defaultBorderRadius,
-        border: Border.all(
-          color: borderColor ?? AppColors.border,
-          width: 1,
+    return ClipRRect(
+      borderRadius: defaultBorderRadius,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          width: width,
+          height: height,
+          margin: margin,
+          padding: padding,
+          decoration: BoxDecoration(
+            color: color ?? Colors.white.withOpacity(0.1),
+            borderRadius: defaultBorderRadius,
+            border: Border.all(
+              color: borderColor ?? Colors.white.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: child,
         ),
       ),
-      child: child,
     );
   }
 }

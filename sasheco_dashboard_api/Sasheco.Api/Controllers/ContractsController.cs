@@ -1,31 +1,117 @@
-using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Sasheco.Application.Features.Contracts;
+using Sasheco.Application.DTOs;
+using Sasheco.Domain.Entities;
+using Sasheco.Domain.Interfaces;
 
 namespace Sasheco.Api.Controllers;
 
+public record AddContractItemRequest(decimal Price, int Quantity, string Description);
+public record UpdateContractTermsRequest(string TermsAndConditions);
+public record UpdateContractFinancialsRequest(decimal AdvancePayment, string PaymentTerms);
+public record ApproveContractRequest(string Comments);
+
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ContractsController : ControllerBase
 {
-    private readonly IMediator _mediator;
+    private readonly IRepository<Contract> _contractRepository;
+    private readonly IRepository<ContractItem> _contractItemRepository;
 
-    public ContractsController(IMediator mediator)
+    public ContractsController(
+        IRepository<Contract> contractRepository,
+        IRepository<ContractItem> contractItemRepository)
     {
-        _mediator = mediator;
+        _contractRepository = contractRepository;
+        _contractItemRepository = contractItemRepository;
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Engineering,Admin")]
+    public async Task<IActionResult> CreateContract([FromBody] CreateContractRequest request)
+    {
+        var contract = new Contract
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = request.ProjectId,
+            VendorId = request.VendorId,
+            TermsAndConditions = request.TermsAndConditions,
+            Status = ContractStatus.Draft
+        };
+
+        await _contractRepository.AddAsync(contract);
+
+        var dto = new ContractSummaryDto(contract.Id, contract.ProjectId, contract.VendorId, contract.Status.ToString());
+        return CreatedAtAction(nameof(GetContract), new { id = contract.Id }, dto);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetContract(Guid id)
+    {
+        var contract = await _contractRepository.GetByIdAsync(id);
+        if (contract == null) return NotFound();
+
+        return Ok(new ContractSummaryDto(contract.Id, contract.ProjectId, contract.VendorId, contract.Status.ToString()));
+    }
+
+    [HttpPost("{id}/items")]
+    [Authorize(Roles = "Engineering,Admin")]
+    public async Task<IActionResult> AddContractItem(Guid id, [FromBody] AddContractItemRequest request)
+    {
+        var contract = await _contractRepository.GetByIdAsync(id);
+        if (contract == null) return NotFound();
+
+        var item = new ContractItem
+        {
+            Id = Guid.NewGuid(),
+            ContractId = id,
+            Price = request.Price,
+            Quantity = request.Quantity,
+            Description = request.Description
+        };
+
+        await _contractItemRepository.AddAsync(item);
+        return Ok(item);
+    }
+
+    [HttpPut("{id}/terms")]
+    [Authorize(Roles = "Secretary,Admin")]
+    public async Task<IActionResult> UpdateTerms(Guid id, [FromBody] UpdateContractTermsRequest request)
+    {
+        var contract = await _contractRepository.GetByIdAsync(id);
+        if (contract == null) return NotFound();
+
+        contract.TermsAndConditions = request.TermsAndConditions;
+        await _contractRepository.UpdateAsync(contract);
+        
+        return NoContent();
+    }
+
+    [HttpPut("{id}/financials")]
+    [Authorize(Roles = "Financial,Admin")]
+    public async Task<IActionResult> UpdateFinancials(Guid id, [FromBody] UpdateContractFinancialsRequest request)
+    {
+        var contract = await _contractRepository.GetByIdAsync(id);
+        if (contract == null) return NotFound();
+
+        // Normally we would map these financials to a specific entity or property
+        // For scaffolding purposes we simulate the update
+        await _contractRepository.UpdateAsync(contract);
+        
+        return NoContent();
     }
 
     [HttpPost("{id}/approve")]
-    public async Task<IActionResult> ApproveContract(string id)
+    [Authorize(Roles = "Management,Admin")]
+    public async Task<IActionResult> ApproveContract(Guid id, [FromBody] ApproveContractRequest request)
     {
-        var result = await _mediator.Send(new ApproveContractCommand(id));
-        return Ok(new { message = result });
-    }
+        var contract = await _contractRepository.GetByIdAsync(id);
+        if (contract == null) return NotFound();
 
-    [HttpPost("{id}/reject")]
-    public async Task<IActionResult> RejectContract(string id)
-    {
-        var result = await _mediator.Send(new RejectContractCommand(id));
-        return Ok(new { message = result });
+        contract.Status = ContractStatus.Active;
+        await _contractRepository.UpdateAsync(contract);
+        
+        return Ok(new { message = "Contract approved." });
     }
 }

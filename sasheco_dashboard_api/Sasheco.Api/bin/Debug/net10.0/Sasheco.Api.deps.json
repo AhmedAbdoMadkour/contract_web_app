@@ -1050,6 +1050,7 @@
       },
       "Sasheco.Application/1.0.0": {
         "dependencies": {
+          "FluentValidation": "12.1.1",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "12.4.1",
           "Sasheco.Domain": "1.0.0"

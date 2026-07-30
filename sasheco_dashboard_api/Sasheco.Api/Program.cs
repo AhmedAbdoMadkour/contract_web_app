@@ -14,7 +14,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<Sasheco.Application.Interfaces.ILocaleService, Sasheco.Api.Services.LocaleService>();
-
+builder.Services.AddScoped(typeof(Sasheco.Domain.Interfaces.IRepository<>), typeof(Sasheco.Infrastructure.Repositories.Repository<>));
+builder.Services.AddScoped<Sasheco.Domain.Interfaces.IUserRepository, Sasheco.Infrastructure.Repositories.UserRepository>();
+builder.Services.AddScoped<Sasheco.Application.Interfaces.IJwtService, Sasheco.Infrastructure.Services.JwtService>();
 // Configure Validation
 builder.Services.AddValidatorsFromAssemblyContaining<Sasheco.Application.Auth.Validators.LoginRequestValidator>();
 

@@ -3,94 +3,54 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
 import 'package:sasheco_dashboard_web/core/widgets/app_background.dart';
-import 'package:sasheco_dashboard_web/l10n/app_localizations.dart';
 
-class MainLayout extends StatelessWidget {
+class MainLayout extends StatefulWidget {
   final Widget child;
 
-  const Scaffold(backgroundColor: Colors.transparent, body: {super.key, required this.child});
+  const MainLayout({super.key, required this.child});
+
+  @override
+  State<MainLayout> createState() => _MainLayoutState();
+}
+
+class _MainLayoutState extends State<MainLayout> {
+  bool isSidebarCollapsed = false;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  void toggleSidebar() {
+    setState(() {
+      isSidebarCollapsed = !isSidebarCollapsed;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final String location = GoRouterState.of(context).uri.toString();
+    final bool isDesktop = MediaQuery.of(context).size.width > 1024;
 
     return AppBackground(
       child: Scaffold(
+        key: _scaffoldKey,
         backgroundColor: Colors.transparent,
-        body: Row(
-          children: [
-            // Sidebar with Glassmorphism
-            ClipRRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                child: Container(
-                  width: 280,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.9), // Glass sidebar
-                    border: Border(
-                      right: BorderSide(color: Colors.white.withOpacity(0.2)),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 32),
-                      // Logo
-                      Row(
-                        children: [
-                          const SizedBox(width: 24),
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Image.asset('assets/images/logo.png', width: 24, height: 24),
-                          ),
-                          const SizedBox(width: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'SASHECO',
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                              Text(
-                                'Enterprise Hub',
-                                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                      color: Colors.white70,
-                                    ),
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 48),
-                      // Navigation Links
-                      Expanded(
-                        child: ListView(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          children: [
-                            _buildNavItem(context, AppLocalizations.of(context)?.overview ?? 'Dashboard', Icons.dashboard, '/dashboard', location),
-                            _buildNavItem(context, AppLocalizations.of(context)?.createUser ?? 'Create User', Icons.person_add, '/create-user', location),
-                            _buildNavItem(context, AppLocalizations.of(context)?.globalPermissionsControl ?? 'Global Permissions', Icons.admin_panel_settings, '/global-permissions', location),
-                            _buildNavItem(context, 'Engineering', Icons.engineering, '/engineering', location),
-                            _buildNavItem(context, 'Secretary', Icons.edit_document, '/secretary', location),
-                            _buildNavItem(context, AppLocalizations.of(context)?.sashecoFinancial ?? 'Financial', Icons.attach_money, '/financial', location),
-                            _buildNavItem(context, 'Contract Approval', Icons.gavel, '/approval', location),
-                            _buildNavItem(context, AppLocalizations.of(context)?.vendorManagement ?? 'Vendor Data', Icons.store, '/vendor', location),
-                            _buildNavItem(context, 'Site Data', Icons.location_on, '/site', location),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
+        drawer: isDesktop
+            ? null
+            : Theme(
+                data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
+                child: Drawer(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  child: _buildSidebar(false, location), // Mobile sidebar is never collapsed (shows text)
                 ),
               ),
-            ),
+        body: Row(
+          children: [
+            // Sidebar for Desktop
+            if (isDesktop)
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                width: isSidebarCollapsed ? 80.0 : 280.0,
+                child: _buildSidebar(isSidebarCollapsed, location),
+              ),
             // Main Content Area
             Expanded(
               child: Column(
@@ -101,7 +61,7 @@ class MainLayout extends StatelessWidget {
                       filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
                       child: Container(
                         height: 80,
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.45), // Glass topbar
                           border: Border(
@@ -109,8 +69,19 @@ class MainLayout extends StatelessWidget {
                           ),
                         ),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
+                            // Menu toggle button
+                            IconButton(
+                              icon: const Icon(Icons.menu, color: AppColors.textSecondary),
+                              onPressed: () {
+                                if (isDesktop) {
+                                  toggleSidebar();
+                                } else {
+                                  _scaffoldKey.currentState?.openDrawer();
+                                }
+                              },
+                            ),
+                            const Spacer(),
                             IconButton(
                               icon: const Icon(Icons.notifications_none, color: AppColors.textSecondary),
                               onPressed: () {},
@@ -134,8 +105,8 @@ class MainLayout extends StatelessWidget {
                   // Content
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.all(40.0),
-                      child: child, // The child (e.g. GlassContainer) will render here
+                      padding: EdgeInsets.all(isDesktop ? 40.0 : 24.0),
+                      child: widget.child,
                     ),
                   ),
                 ],
@@ -147,7 +118,82 @@ class MainLayout extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(BuildContext context, String title, IconData icon, String route, String currentLocation) {
+  Widget _buildSidebar(bool isCollapsed, String location) {
+    final bool showText = !isCollapsed;
+
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.9), // Glass sidebar
+            border: Border(
+              right: BorderSide(color: Colors.white.withOpacity(0.2)),
+            ),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 32),
+              // Logo
+              Row(
+                mainAxisAlignment: showText ? MainAxisAlignment.start : MainAxisAlignment.center,
+                children: [
+                  if (showText) const SizedBox(width: 24),
+                  Image.asset('assets/images/logo.png', height: 48),
+                  if (showText) ...[
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'SASHECO',
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            'Enterprise Hub',
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: Colors.white70,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    )
+                  ]
+                ],
+              ),
+              const SizedBox(height: 48),
+              // Navigation Links
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 8 : 16),
+                  children: [
+                    _buildNavItem(context, 'Dashboard', Icons.dashboard, '/dashboard', location, showText),
+                    _buildNavItem(context, 'Create User', Icons.person_add, '/create-user', location, showText),
+                    _buildNavItem(context, 'Global Permissions', Icons.admin_panel_settings, '/global-permissions', location, showText),
+                    _buildNavItem(context, 'Engineering', Icons.engineering, '/engineering', location, showText),
+                    _buildNavItem(context, 'Secretary', Icons.edit_document, '/secretary', location, showText),
+                    _buildNavItem(context, 'Financial', Icons.attach_money, '/financial', location, showText),
+                    _buildNavItem(context, 'Contract Approval', Icons.gavel, '/approval', location, showText),
+                    _buildNavItem(context, 'Vendor Data', Icons.store, '/vendor', location, showText),
+                    _buildNavItem(context, 'Site Data', Icons.location_on, '/site', location, showText),
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(
+      BuildContext context, String title, IconData icon, String route, String currentLocation, bool showText) {
     final bool isActive = currentLocation == route;
 
     return Container(
@@ -155,23 +201,34 @@ class MainLayout extends StatelessWidget {
       decoration: BoxDecoration(
         color: isActive ? Colors.white.withOpacity(0.1) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
-        border: isActive
+        border: isActive && showText
             ? const Border(left: BorderSide(color: AppColors.accent, width: 4))
             : null,
       ),
-      child: ListTile(
-        leading: Icon(icon, color: isActive ? AppColors.accent : Colors.white70),
-        title: Text(
-          title,
-          style: TextStyle(
-            color: isActive ? Colors.white : Colors.white70,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-          ),
+      child: Tooltip(
+        message: showText ? '' : title,
+        child: ListTile(
+          leading: Icon(icon, color: isActive ? AppColors.accent : Colors.white70),
+          title: showText
+              ? Text(
+                  title,
+                  style: TextStyle(
+                    color: isActive ? Colors.white : Colors.white70,
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                )
+              : null,
+          contentPadding: EdgeInsets.symmetric(horizontal: showText ? 16.0 : 0.0),
+          horizontalTitleGap: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          onTap: () {
+            context.go(route);
+            if (MediaQuery.of(context).size.width <= 1024) {
+              Navigator.of(context).pop(); // Close drawer on mobile
+            }
+          },
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        onTap: () {
-          context.go(route);
-        },
       ),
     );
   }

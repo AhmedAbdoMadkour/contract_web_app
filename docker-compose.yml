@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sasheco_db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Sasheco_Super_Secret_Password_2026!"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  api:
+    build:
+      context: ./sasheco_dashboard_api
+      dockerfile: Dockerfile
+    container_name: sasheco_api
+    depends_on:
+      - db
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=SashecoDb;User Id=SA;Password=Sasheco_Super_Secret_Password_2026!;TrustServerCertificate=True
+    ports:
+      - "5000:8080"
+      - "5001:8081"
+    restart: on-failure
+
+  web:
+    build:
+      context: ./sasheco_dashboard_web
+      dockerfile: Dockerfile
+    container_name: sasheco_web
+    depends_on:
+      - api
+    ports:
+      - "3000:80"
+
+volumes:
+  sqlserver_data:
