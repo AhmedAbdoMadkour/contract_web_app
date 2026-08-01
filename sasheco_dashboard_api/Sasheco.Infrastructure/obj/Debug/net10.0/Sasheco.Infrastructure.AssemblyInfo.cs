@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Sasheco.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a968e25b8a186427aae6718fc0009b7ac366f41d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+12af503f18e86c3b9c1fdc5a3395ab714125984e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Sasheco.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Sasheco.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

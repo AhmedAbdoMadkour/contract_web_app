@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repository/engineering_repository.dart';
+import '../../data/model/engineering_project_model.dart';
+import '../../data/model/contract_model.dart';
 import 'engineering_state.dart';
 
 class EngineeringCubit extends Cubit<EngineeringState> {
@@ -7,12 +9,20 @@ class EngineeringCubit extends Cubit<EngineeringState> {
 
   EngineeringCubit(this._repository) : super(EngineeringInitial());
 
+  List<EngineeringProjectModel> _projects = [];
+
   Future<void> fetchProjects() async {
     emit(EngineeringLoading());
     final result = await _repository.getProjects();
     result.fold(
       (failure) => emit(EngineeringError(failure.message)),
-      (projects) => emit(EngineeringProjectsLoaded(projects)),
+      (projects) {
+        _projects = projects;
+        emit(EngineeringProjectsLoaded(projects));
+        if (projects.isNotEmpty) {
+          fetchProjectContracts(projects.first.id);
+        }
+      },
     );
   }
 
@@ -51,6 +61,15 @@ class EngineeringCubit extends Cubit<EngineeringState> {
         // Optionally refetch projects to update the list
         fetchProjects();
       },
+    );
+  }
+
+  Future<void> fetchProjectContracts(String projectId) async {
+    emit(EngineeringLoading());
+    final result = await _repository.getProjectContracts(projectId);
+    result.fold(
+      (failure) => emit(EngineeringError(failure.message)),
+      (contracts) => emit(EngineeringContractsLoaded(contracts, _projects)),
     );
   }
 }

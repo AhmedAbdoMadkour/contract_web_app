@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
 import 'package:sasheco_dashboard_web/features/vendor/data/model/create_vendor_model.dart';
-import 'package:sasheco_dashboard_web/l10n/app_localizations.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sasheco_dashboard_web/features/vendor/presentation/cubit/vendor_cubit.dart';
 import 'package:sasheco_dashboard_web/features/vendor/presentation/cubit/vendor_state.dart';
 
@@ -69,7 +69,7 @@ class _CreateVendorDialogState extends State<CreateVendorDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppLocalizations.of(context)!.addNewVendor,
+                  'addNewVendor'.tr(),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
@@ -93,7 +93,7 @@ class _CreateVendorDialogState extends State<CreateVendorDialog> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(color: AppColors.textSecondary)),
+                      child: Text('cancel'.tr(), style: const TextStyle(color: AppColors.textSecondary)),
                     ),
                     const SizedBox(width: 16),
                     BlocBuilder<VendorCubit, VendorState>(
@@ -112,7 +112,7 @@ class _CreateVendorDialogState extends State<CreateVendorDialog> {
                                   height: 20,
                                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                                 )
-                              : Text(AppLocalizations.of(context)!.saveVendor, style: const TextStyle(color: Colors.white)),
+                              : Text('saveVendor'.tr(), style: const TextStyle(color: Colors.white)),
                         );
                       },
                     ),

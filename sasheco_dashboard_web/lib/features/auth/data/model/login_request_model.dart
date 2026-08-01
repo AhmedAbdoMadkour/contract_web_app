@@ -11,7 +11,7 @@ class LoginRequestModel extends Equatable {
 
   Map<String, dynamic> toJson() {
     return {
-      'username': email,
+      'employeeNumber': email,
       'password': password,
     };
   }

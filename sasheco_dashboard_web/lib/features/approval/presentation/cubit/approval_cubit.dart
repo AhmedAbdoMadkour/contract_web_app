@@ -20,12 +20,89 @@ class ApprovalCubit extends Cubit<ApprovalState> {
     );
   }
 
-  Future<void> approveRequest(String id) async {
-    await _updateStatus(id, 'Approved');
+  Future<void> fetchApprovalHistory(String id) async {
+    emit(ApprovalHistoryLoading());
+    
+    final result = await _repository.getApprovalHistory(id);
+    
+    result.fold(
+      (failure) => emit(ApprovalError(failure.message)),
+      (history) => emit(ApprovalHistoryLoaded(history)),
+    );
   }
 
-  Future<void> rejectRequest(String id) async {
-    await _updateStatus(id, 'Rejected');
+  Future<void> approveRequest(String id, String comments, String? evidenceUrl) async {
+    List<ApprovalModel> currentApprovals = [];
+    if (state is ApprovalLoaded) {
+      currentApprovals = (state as ApprovalLoaded).approvals;
+    } else if (state is ApprovalActionSuccess) {
+      currentApprovals = (state as ApprovalActionSuccess).currentApprovals;
+    } else if (state is ApprovalError) {
+      currentApprovals = (state as ApprovalError).currentApprovals ?? [];
+    }
+
+    emit(ApprovalActionLoading(id, currentApprovals));
+
+    final result = await _repository.approveApproval(id, comments, evidenceUrl);
+
+    result.fold(
+      (failure) => emit(ApprovalError(failure.message, currentApprovals: currentApprovals)),
+      (success) {
+        final updatedApprovals = currentApprovals.map((approval) {
+          if (approval.id == id) {
+            return ApprovalModel(
+              id: approval.id,
+              title: approval.title,
+              description: approval.description,
+              status: 'Approved',
+              requestedBy: approval.requestedBy,
+              createdAt: approval.createdAt,
+            );
+          }
+          return approval;
+        }).toList();
+        
+        emit(ApprovalActionSuccess('Status updated successfully.', updatedApprovals));
+        emit(ApprovalLoaded(updatedApprovals));
+      },
+    );
+  }
+
+  Future<void> rejectRequest(String id, String comments, String? evidenceUrl) async {
+    List<ApprovalModel> currentApprovals = [];
+    if (state is ApprovalLoaded) {
+      currentApprovals = (state as ApprovalLoaded).approvals;
+    } else if (state is ApprovalActionSuccess) {
+      currentApprovals = (state as ApprovalActionSuccess).currentApprovals;
+    } else if (state is ApprovalError) {
+      currentApprovals = (state as ApprovalError).currentApprovals ?? [];
+    }
+
+    emit(ApprovalActionLoading(id, currentApprovals));
+
+    final result = await _repository.rejectApproval(id, comments, evidenceUrl);
+
+    result.fold(
+      (failure) => emit(ApprovalError(failure.message, currentApprovals: currentApprovals)),
+      (success) {
+        final updatedApprovals = currentApprovals.map((approval) {
+          if (approval.id == id) {
+            return ApprovalModel(
+              id: approval.id,
+              title: approval.title,
+              description: approval.description,
+              status: 'Rejected',
+              requestedBy: approval.requestedBy,
+              createdAt: approval.createdAt,
+            );
+          }
+          return approval;
+        }).toList();
+        
+        emit(ApprovalActionSuccess('Status updated successfully.', updatedApprovals));
+        emit(ApprovalLoaded(updatedApprovals));
+      },
+    );
   }
 
   Future<void> _updateStatus(String id, String status) async {
@@ -45,7 +122,6 @@ class ApprovalCubit extends Cubit<ApprovalState> {
     result.fold(
       (failure) => emit(ApprovalError(failure.message, currentApprovals: currentApprovals)),
       (success) {
-        // Optimistically update the list if success
         final updatedApprovals = currentApprovals.map((approval) {
           if (approval.id == id) {
             return ApprovalModel(

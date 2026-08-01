@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../data/model/engineering_project_model.dart';
+import '../../data/model/contract_model.dart';
 
 abstract class EngineeringState extends Equatable {
   const EngineeringState();
@@ -14,11 +15,12 @@ class EngineeringLoading extends EngineeringState {}
 
 class EngineeringProjectsLoaded extends EngineeringState {
   final List<EngineeringProjectModel> projects;
+  final List<ContractModel>? contracts;
 
-  const EngineeringProjectsLoaded(this.projects);
+  const EngineeringProjectsLoaded(this.projects, {this.contracts});
 
   @override
-  List<Object?> get props => [projects];
+  List<Object?> get props => [projects, contracts];
 }
 
 class EngineeringProjectLoaded extends EngineeringState {
@@ -56,4 +58,14 @@ class EngineeringStatusUpdated extends EngineeringState {
 
   @override
   List<Object?> get props => [id, status];
+}
+
+class EngineeringContractsLoaded extends EngineeringState {
+  final List<ContractModel> contracts;
+  final List<EngineeringProjectModel> projects;
+
+  const EngineeringContractsLoaded(this.contracts, this.projects);
+
+  @override
+  List<Object?> get props => [contracts, projects];
 }

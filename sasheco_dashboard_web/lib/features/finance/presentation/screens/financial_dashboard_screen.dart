@@ -1,4 +1,4 @@
-import 'package:sasheco_dashboard_web/l10n/app_localizations.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
 
@@ -87,14 +87,14 @@ class _FinancialDashboardScreenState extends State<FinancialDashboardScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(AppLocalizations.of(context)?.financialOverview ?? 'Financial Overview',
+            Text('financialOverview'.tr(),
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
             ),
             const SizedBox(height: 4),
-            Text(AppLocalizations.of(context)?.projectAlphaTerminalExpansion ?? 'Project: Alpha Terminal Expansion',
+            Text('projectAlphaTerminalExpansion'.tr(),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -108,7 +108,7 @@ class _FinancialDashboardScreenState extends State<FinancialDashboardScreen> {
             );
           },
           icon: const Icon(Icons.check_circle_outline),
-          label: Text(AppLocalizations.of(context)?.approveFinancials ?? 'Approve Financials', style: const TextStyle(fontWeight: FontWeight.bold)),
+          label: Text('approveFinancials'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.success,
             foregroundColor: Colors.white,
@@ -198,9 +198,9 @@ class _FinancialDashboardScreenState extends State<FinancialDashboardScreen> {
               headingRowColor: const WidgetStatePropertyAll(AppColors.background),
               columns: [
                 const DataColumn(label: Text('Transaction ID')),
-                DataColumn(label: Text(AppLocalizations.of(context)?.description ?? 'Description')),
+                DataColumn(label: Text('description'.tr())),
                 const DataColumn(label: Text('Amount')),
-                DataColumn(label: Text(AppLocalizations.of(context)?.status ?? 'Type')),
+                DataColumn(label: Text('status'.tr())),
                 const DataColumn(label: Text('Action')),
               ],
               rows: transactions.map((t) => _buildPaymentRow(

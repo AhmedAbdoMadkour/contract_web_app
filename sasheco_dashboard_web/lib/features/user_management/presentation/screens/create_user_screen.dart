@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
 
 import 'package:sasheco_dashboard_web/core/widgets/glass_container.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
@@ -18,6 +20,25 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
   final _emailController = TextEditingController();
   String _selectedRole = 'analyst';
   final _formKey = GlobalKey<FormState>();
+
+  Uint8List? _avatarBytes;
+  String? _avatarFileName;
+
+  final Map<String, Map<String, bool>> _permissions = {
+    'Financial Dashboard': {'View': false, 'Edit': false, 'Admin': false},
+    'Client Records': {'View': true, 'Edit': false, 'Admin': false},
+    'System Settings': {'View': false, 'Edit': false, 'Admin': false},
+  };
+
+  Future<void> _pickImage() async {
+    final result = await FilePicker.pickFiles(type: FileType.image);
+    if (result != null && result.files.isNotEmpty) {
+      setState(() {
+        _avatarBytes = result.files.first.bytes;
+        _avatarFileName = result.files.first.name;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -63,51 +84,74 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
                   const Text('User Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 24),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: _buildTextField('User Number', 'USR-4029', readOnly: true),
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Colors.grey.withValues(alpha: 0.2),
+                          backgroundImage: _avatarBytes != null ? MemoryImage(_avatarBytes!) : null,
+                          child: _avatarBytes == null
+                              ? const Icon(Icons.add_a_photo, size: 30, color: AppColors.textSecondary)
+                              : null,
+                        ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildTextField('Full Name', 'e.g. Jane Doe', controller: _nameController, validator: (val) {
-                          if (val == null || val.isEmpty) return 'Name is required';
-                          return null;
-                        }),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildTextField('Email', 'e.g. user@example.com', controller: _emailController, validator: (val) {
-                          if (val == null || val.isEmpty) return 'Email is required';
-                          return null;
-                        }),
-                      ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 24),
                       Expanded(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Position / Role', style: TextStyle(color: AppColors.textSecondary)),
-                            const SizedBox(height: 8),
-                            DropdownButtonFormField<String>(
-                              value: _selectedRole,
-                              items: const [
-                                DropdownMenuItem(value: 'analyst', child: Text('Financial Analyst')),
-                                DropdownMenuItem(value: 'manager', child: Text('Project Manager')),
-                                DropdownMenuItem(value: 'admin', child: Text('System Administrator')),
-                                DropdownMenuItem(value: 'engineer', child: Text('Engineer')),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildTextField('User Number', 'USR-4029', readOnly: true),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildTextField('Full Name', 'e.g. Jane Doe', controller: _nameController, validator: (val) {
+                                    if (val == null || val.isEmpty) return 'Name is required';
+                                    return null;
+                                  }),
+                                ),
                               ],
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setState(() {
-                                    _selectedRole = val;
-                                  });
-                                }
-                              },
-                              hint: const Text('Select Role'),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildTextField('Email', 'e.g. user@example.com', controller: _emailController, validator: (val) {
+                                    if (val == null || val.isEmpty) return 'Email is required';
+                                    return null;
+                                  }),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('Position / Role', style: TextStyle(color: AppColors.textSecondary)),
+                                      const SizedBox(height: 8),
+                                      DropdownButtonFormField<String>(
+                                        value: _selectedRole,
+                                        items: const [
+                                          DropdownMenuItem(value: 'analyst', child: Text('Financial Analyst')),
+                                          DropdownMenuItem(value: 'manager', child: Text('Project Manager')),
+                                          DropdownMenuItem(value: 'admin', child: Text('System Administrator')),
+                                          DropdownMenuItem(value: 'engineer', child: Text('Engineer')),
+                                        ],
+                                        onChanged: (val) {
+                                          if (val != null) {
+                                            setState(() {
+                                              _selectedRole = val;
+                                            });
+                                          }
+                                        },
+                                        hint: const Text('Select Role'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -128,6 +172,15 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
                         onPressed: () {
                           _nameController.clear();
                           _emailController.clear();
+                          setState(() {
+                            _avatarBytes = null;
+                            _avatarFileName = null;
+                            _permissions.forEach((k, v) {
+                              v['View'] = false;
+                              v['Edit'] = false;
+                              v['Admin'] = false;
+                            });
+                          });
                         },
                         child: const Text('Cancel'),
                       ),
@@ -199,34 +252,53 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
         DataColumn(label: Text('Edit')),
         DataColumn(label: Text('Admin')),
       ],
-      rows: [
-        _buildPermissionRow('Financial Dashboard', false, false, false),
-        _buildPermissionRow('Client Records', true, false, false),
-        _buildPermissionRow('System Settings', false, false, false),
-      ],
+      rows: _permissions.keys.map((module) {
+        return _buildPermissionRow(module);
+      }).toList(),
     );
   }
 
-  DataRow _buildPermissionRow(String module, bool view, bool edit, bool admin) {
+  DataRow _buildPermissionRow(String module) {
     return DataRow(
       cells: [
         DataCell(Text(module)),
         DataCell(
           Semantics(
             label: '$module view permission',
-            child: Checkbox(value: view, onChanged: (v) {}),
+            child: Checkbox(
+              value: _permissions[module]!['View'],
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() => _permissions[module]!['View'] = v);
+                }
+              },
+            ),
           ),
         ),
         DataCell(
           Semantics(
             label: '$module edit permission',
-            child: Checkbox(value: edit, onChanged: (v) {}),
+            child: Checkbox(
+              value: _permissions[module]!['Edit'],
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() => _permissions[module]!['Edit'] = v);
+                }
+              },
+            ),
           ),
         ),
         DataCell(
           Semantics(
             label: '$module admin permission',
-            child: Checkbox(value: admin, onChanged: (v) {}),
+            child: Checkbox(
+              value: _permissions[module]!['Admin'],
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() => _permissions[module]!['Admin'] = v);
+                }
+              },
+            ),
           ),
         ),
       ],

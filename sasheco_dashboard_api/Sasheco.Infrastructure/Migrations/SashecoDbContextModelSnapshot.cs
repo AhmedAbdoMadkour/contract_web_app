@@ -31,7 +31,11 @@ namespace Sasheco.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("DescriptionAr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DescriptionEn")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -43,7 +47,11 @@ namespace Sasheco.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("TitleAr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TitleEn")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -53,6 +61,69 @@ namespace Sasheco.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Approvals");
+                });
+
+            modelBuilder.Entity("Sasheco.Domain.Entities.ApprovalAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ApprovalId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApprovalId");
+
+                    b.ToTable("ApprovalAttachments");
+                });
+
+            modelBuilder.Entity("Sasheco.Domain.Entities.ApprovalHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ActionTaken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ApprovalId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Comments")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApprovalId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ApprovalHistories");
                 });
 
             modelBuilder.Entity("Sasheco.Domain.Entities.Contract", b =>
@@ -92,11 +163,16 @@ namespace Sasheco.Infrastructure.Migrations
                     b.Property<Guid>("ContractId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("DescriptionAr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DescriptionEn")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Quantity")
@@ -136,40 +212,6 @@ namespace Sasheco.Infrastructure.Migrations
                     b.ToTable("DrawingAttachments");
                 });
 
-            modelBuilder.Entity("Sasheco.Domain.Entities.EngineeringProject", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("DescriptionAr")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DescriptionEn")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("EngineeringProjects");
-                });
-
             modelBuilder.Entity("Sasheco.Domain.Entities.FinanceMilestone", b =>
                 {
                     b.Property<Guid>("Id")
@@ -177,6 +219,7 @@ namespace Sasheco.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("ProjectId")
@@ -205,6 +248,7 @@ namespace Sasheco.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("Date")
@@ -229,11 +273,19 @@ namespace Sasheco.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("DescriptionAr")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("DescriptionEn")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameEn")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -245,86 +297,114 @@ namespace Sasheco.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333331"),
-                            Description = "View Sites",
-                            Name = "ViewSites"
+                            DescriptionAr = "عرض المواقع",
+                            DescriptionEn = "View Sites",
+                            NameAr = "عرض المواقع",
+                            NameEn = "ViewSites"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333332"),
-                            Description = "Manage Sites",
-                            Name = "ManageSites"
+                            DescriptionAr = "إدارة المواقع",
+                            DescriptionEn = "Manage Sites",
+                            NameAr = "إدارة المواقع",
+                            NameEn = "ManageSites"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            Description = "View Engineering",
-                            Name = "ViewEngineering"
+                            DescriptionAr = "عرض الهندسة",
+                            DescriptionEn = "View Engineering",
+                            NameAr = "عرض الهندسة",
+                            NameEn = "ViewEngineering"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333334"),
-                            Description = "Manage Engineering",
-                            Name = "ManageEngineering"
+                            DescriptionAr = "إدارة الهندسة",
+                            DescriptionEn = "Manage Engineering",
+                            NameAr = "إدارة الهندسة",
+                            NameEn = "ManageEngineering"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333335"),
-                            Description = "View Users",
-                            Name = "ViewUsers"
+                            DescriptionAr = "عرض المستخدمين",
+                            DescriptionEn = "View Users",
+                            NameAr = "عرض المستخدمين",
+                            NameEn = "ViewUsers"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333336"),
-                            Description = "Manage Users",
-                            Name = "ManageUsers"
+                            DescriptionAr = "إدارة المستخدمين",
+                            DescriptionEn = "Manage Users",
+                            NameAr = "إدارة المستخدمين",
+                            NameEn = "ManageUsers"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333337"),
-                            Description = "View Approvals",
-                            Name = "ViewApprovals"
+                            DescriptionAr = "عرض الموافقات",
+                            DescriptionEn = "View Approvals",
+                            NameAr = "عرض الموافقات",
+                            NameEn = "ViewApprovals"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333338"),
-                            Description = "Manage Approvals",
-                            Name = "ManageApprovals"
+                            DescriptionAr = "إدارة الموافقات",
+                            DescriptionEn = "Manage Approvals",
+                            NameAr = "إدارة الموافقات",
+                            NameEn = "ManageApprovals"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333339"),
-                            Description = "View Finance",
-                            Name = "ViewFinance"
+                            DescriptionAr = "عرض المالية",
+                            DescriptionEn = "View Finance",
+                            NameAr = "عرض المالية",
+                            NameEn = "ViewFinance"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333340"),
-                            Description = "Manage Finance",
-                            Name = "ManageFinance"
+                            DescriptionAr = "إدارة المالية",
+                            DescriptionEn = "Manage Finance",
+                            NameAr = "إدارة المالية",
+                            NameEn = "ManageFinance"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333341"),
-                            Description = "View Vendors",
-                            Name = "ViewVendors"
+                            DescriptionAr = "عرض الموردين",
+                            DescriptionEn = "View Vendors",
+                            NameAr = "عرض الموردين",
+                            NameEn = "ViewVendors"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333342"),
-                            Description = "Manage Vendors",
-                            Name = "ManageVendors"
+                            DescriptionAr = "إدارة الموردين",
+                            DescriptionEn = "Manage Vendors",
+                            NameAr = "إدارة الموردين",
+                            NameEn = "ManageVendors"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333343"),
-                            Description = "View Secretary",
-                            Name = "ViewSecretary"
+                            DescriptionAr = "عرض السكرتارية",
+                            DescriptionEn = "View Secretary",
+                            NameAr = "عرض السكرتارية",
+                            NameEn = "ViewSecretary"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333344"),
-                            Description = "Manage Secretary",
-                            Name = "ManageSecretary"
+                            DescriptionAr = "إدارة السكرتارية",
+                            DescriptionEn = "Manage Secretary",
+                            NameAr = "إدارة السكرتارية",
+                            NameEn = "ManageSecretary"
                         });
                 });
 
@@ -333,6 +413,14 @@ namespace Sasheco.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DescriptionAr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DescriptionEn")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NameAr")
                         .IsRequired()
@@ -343,6 +431,13 @@ namespace Sasheco.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ProjectCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -370,6 +465,21 @@ namespace Sasheco.Infrastructure.Migrations
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
                             Name = "Admin"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111112"),
+                            Name = "ProjectManager"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111113"),
+                            Name = "FinancialAnalyst"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111114"),
+                            Name = "Auditor"
                         });
                 });
 
@@ -457,6 +567,111 @@ namespace Sasheco.Infrastructure.Migrations
                         {
                             RoleId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PermissionId = new Guid("33333333-3333-3333-3333-333333333344")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111112"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333331")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111112"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333332")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111112"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333333")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111112"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333334")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111112"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333337")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111112"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333338")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111112"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333341")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111112"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333342")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111113"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333337")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111113"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333338")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111113"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333339")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111113"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333340")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111113"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333341")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111113"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333342")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111114"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333331")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111114"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333333")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111114"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333335")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111114"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333337")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111114"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333339")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111114"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333341")
+                        },
+                        new
+                        {
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111114"),
+                            PermissionId = new Guid("33333333-3333-3333-3333-333333333343")
                         });
                 });
 
@@ -588,39 +803,6 @@ namespace Sasheco.Infrastructure.Migrations
                     b.ToTable("Sites");
                 });
 
-            modelBuilder.Entity("Sasheco.Domain.Entities.Translation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EntityId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EntityType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FieldName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Locale")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Translations");
-                });
-
             modelBuilder.Entity("Sasheco.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -657,7 +839,11 @@ namespace Sasheco.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Position")
+                    b.Property<string>("PositionAr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PositionEn")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -682,8 +868,39 @@ namespace Sasheco.Infrastructure.Migrations
                             LastName = "Admin",
                             Name = "admin",
                             PasswordHash = "$2a$11$O3zVCihyy0MSym1gcrABCuoez8HBLdos8JD7XxlAuxdOMxamf3wje",
-                            Position = "Administrator",
+                            PositionAr = "مسؤول",
+                            PositionEn = "Administrator",
                             RoleId = new Guid("11111111-1111-1111-1111-111111111111")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222223"),
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "engineer@sasheco.com",
+                            EmployeeNumber = "ENG001",
+                            FirstName = "Project",
+                            IsActive = true,
+                            LastName = "Engineer",
+                            Name = "engineer",
+                            PasswordHash = "$2a$11$O3zVCihyy0MSym1gcrABCuoez8HBLdos8JD7XxlAuxdOMxamf3wje",
+                            PositionAr = "مدير مشروع",
+                            PositionEn = "Project Manager",
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111112")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222224"),
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "finance@sasheco.com",
+                            EmployeeNumber = "FIN001",
+                            FirstName = "Financial",
+                            IsActive = true,
+                            LastName = "Analyst",
+                            Name = "finance",
+                            PasswordHash = "$2a$11$O3zVCihyy0MSym1gcrABCuoez8HBLdos8JD7XxlAuxdOMxamf3wje",
+                            PositionAr = "محلل مالي",
+                            PositionEn = "Financial Analyst",
+                            RoleId = new Guid("11111111-1111-1111-1111-111111111113")
                         });
                 });
 
@@ -739,6 +956,36 @@ namespace Sasheco.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Vendors");
+                });
+
+            modelBuilder.Entity("Sasheco.Domain.Entities.ApprovalAttachment", b =>
+                {
+                    b.HasOne("Sasheco.Domain.Entities.Approval", "Approval")
+                        .WithMany("Attachments")
+                        .HasForeignKey("ApprovalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Approval");
+                });
+
+            modelBuilder.Entity("Sasheco.Domain.Entities.ApprovalHistory", b =>
+                {
+                    b.HasOne("Sasheco.Domain.Entities.Approval", "Approval")
+                        .WithMany("History")
+                        .HasForeignKey("ApprovalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sasheco.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Approval");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Sasheco.Domain.Entities.Contract", b =>
@@ -810,6 +1057,13 @@ namespace Sasheco.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("Sasheco.Domain.Entities.Approval", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("History");
                 });
 
             modelBuilder.Entity("Sasheco.Domain.Entities.Contract", b =>

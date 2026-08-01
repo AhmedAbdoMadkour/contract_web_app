@@ -3,6 +3,7 @@ import '../../../../core/shared/error/failures.dart';
 import '../../../../core/shared/error/error_handler.dart';
 import '../../../../core/shared/network/network_service.dart';
 import '../model/approval_model.dart';
+import '../model/approval_history_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dio/dio.dart';
 
@@ -13,7 +14,7 @@ class ApprovalRepository {
 
   Future<Either<Failure, List<ApprovalModel>>> getApprovals() async {
     try {
-      final response = await _networkService.get('/api/approvals');
+      final response = await _networkService.get('/api/approval');
       
       if (response.statusCode == 200) {
         final data = response.data as List;
@@ -21,6 +22,62 @@ class ApprovalRepository {
         return Right(approvals);
       } else {
         return const Left(ServerFailure('Failed to fetch approvals.'));
+      }
+    } catch (e) {
+      return Left(ErrorHandler.handleException(e));
+    }
+  }
+
+  Future<Either<Failure, List<ApprovalHistoryModel>>> getApprovalHistory(String id) async {
+    try {
+      final response = await _networkService.get('/api/approval/$id/history');
+      
+      if (response.statusCode == 200) {
+        final data = response.data as List;
+        final history = data.map((e) => ApprovalHistoryModel.fromJson(e as Map<String, dynamic>)).toList();
+        return Right(history);
+      } else {
+        return const Left(ServerFailure('Failed to fetch approval history.'));
+      }
+    } catch (e) {
+      return Left(ErrorHandler.handleException(e));
+    }
+  }
+
+  Future<Either<Failure, bool>> approveApproval(String id, String comments, String? evidenceUrl) async {
+    try {
+      final response = await _networkService.post(
+        '/api/approval/$id/approve',
+        data: {
+          'comments': comments,
+          if (evidenceUrl != null) 'evidenceUrl': evidenceUrl,
+        },
+      );
+      
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return const Right(true);
+      } else {
+        return const Left(ServerFailure('Failed to approve request.'));
+      }
+    } catch (e) {
+      return Left(ErrorHandler.handleException(e));
+    }
+  }
+
+  Future<Either<Failure, bool>> rejectApproval(String id, String comments, String? evidenceUrl) async {
+    try {
+      final response = await _networkService.post(
+        '/api/approval/$id/reject',
+        data: {
+          'comments': comments,
+          if (evidenceUrl != null) 'evidenceUrl': evidenceUrl,
+        },
+      );
+      
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return const Right(true);
+      } else {
+        return const Left(ServerFailure('Failed to reject request.'));
       }
     } catch (e) {
       return Left(ErrorHandler.handleException(e));

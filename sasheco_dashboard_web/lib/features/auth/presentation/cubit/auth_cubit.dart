@@ -17,19 +17,7 @@ class AuthCubit extends HydratedCubit<AuthState> {
     // Simulate network delay
     await Future.delayed(const Duration(seconds: 2));
 
-    // Hardcoded mock login as requested by the user
-    if (email == 'admin' && password == 'password') {
-      final mockUser = UserModel(
-        id: '1',
-        email: 'admin@sasheco.com',
-        name: 'System Admin',
-        token: 'mock_jwt_token',
-      );
-      emit(AuthSuccess(mockUser));
-      return;
-    }
-
-    // Fallback to repository (which will likely fail if backend isn't running)
+    // Fallback to repository
     final request = LoginRequestModel(email: email, password: password);
     final result = await _authRepository.login(request);
     

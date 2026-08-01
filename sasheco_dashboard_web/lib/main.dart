@@ -13,6 +13,8 @@ import 'package:sasheco_dashboard_web/features/dashboard/presentation/cubit/dash
 import 'package:sasheco_dashboard_web/features/dashboard/data/repository/dashboard_repository.dart';
 import 'package:sasheco_dashboard_web/features/user_management/presentation/cubit/user_management_cubit.dart';
 import 'package:sasheco_dashboard_web/features/user_management/data/repository/user_management_repository.dart';
+import 'package:sasheco_dashboard_web/features/user_management/presentation/cubit/roles_cubit.dart';
+import 'package:sasheco_dashboard_web/features/user_management/data/repository/roles_repository.dart';
 import 'package:sasheco_dashboard_web/features/finance/presentation/cubit/finance_cubit.dart';
 import 'package:sasheco_dashboard_web/features/finance/data/repository/finance_repository_impl.dart';
 import 'package:sasheco_dashboard_web/features/engineering/presentation/cubit/engineering_cubit.dart';
@@ -20,7 +22,7 @@ import 'package:sasheco_dashboard_web/features/engineering/data/repository/engin
 import 'package:sasheco_dashboard_web/features/site/presentation/cubit/site_cubit.dart';
 import 'package:sasheco_dashboard_web/features/site/data/repository/site_repository.dart';
 import 'package:sasheco_dashboard_web/core/localization/locale_cubit.dart';
-import 'package:sasheco_dashboard_web/l10n/app_localizations.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sasheco_dashboard_web/features/vendor/presentation/cubit/vendor_cubit.dart';
 import 'package:sasheco_dashboard_web/features/vendor/data/repository/vendor_repository.dart';
@@ -34,13 +36,23 @@ import 'package:flutter/foundation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
+
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
         ? HydratedStorageDirectory.web
         : HydratedStorageDirectory((await getApplicationDocumentsDirectory()).path),
   );
   final prefs = await SharedPreferences.getInstance();
-  runApp(MyApp(prefs: prefs));
+  
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('ar')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en'),
+      child: MyApp(prefs: prefs),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -82,6 +94,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    NetworkService.currentLanguage = context.locale.languageCode;
+    
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(
@@ -99,6 +113,11 @@ class _MyAppState extends State<MyApp> {
           create: (context) => UserManagementCubit(
             UserManagementRepositoryImpl(networkService),
           ),
+        ),
+        BlocProvider(
+          create: (context) => RolesCubit(
+            RolesRepository(networkService),
+          )..fetchRoles(),
         ),
         BlocProvider(
           create: (context) => FinanceCubit(
@@ -131,25 +150,19 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
       ],
-      child: BlocBuilder<LocaleCubit, Locale>(
-        builder: (context, locale) {
+      child: Builder(
+        builder: (context) {
           return MaterialApp.router(
             title: 'SASHECO Dashboard',
             theme: AppTheme.lightTheme,
             routerConfig: _router,
             debugShowCheckedModeBanner: false,
-            locale: locale,
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
+            localizationsDelegates: [
+              ...context.localizationDelegates,
               FlutterQuillLocalizations.delegate,
             ],
-            supportedLocales: const [
-              Locale('en'),
-              Locale('ar'),
-            ],
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
           );
         },
       ),

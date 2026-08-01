@@ -1,4 +1,4 @@
-import 'package:sasheco_dashboard_web/l10n/app_localizations.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:desktop_drop/desktop_drop.dart';
@@ -9,6 +9,8 @@ import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sasheco_dashboard_web/features/engineering/presentation/cubit/engineering_cubit.dart';
 import 'package:sasheco_dashboard_web/features/engineering/presentation/cubit/engineering_state.dart';
+import 'package:sasheco_dashboard_web/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:sasheco_dashboard_web/features/engineering/data/model/contract_model.dart';
 
 class EngineeringDashboardScreen extends StatefulWidget {
   const EngineeringDashboardScreen({super.key});
@@ -46,12 +48,26 @@ class _EngineeringDashboardScreenState extends State<EngineeringDashboardScreen>
             return const Center(child: CircularProgressIndicator());
           }
           
-          String projectName = AppLocalizations.of(context)?.projectAlphaTerminalExpansion ?? 'Project: Alpha Terminal Expansion';
+          String projectName = 'projectAlphaTerminalExpansion'.tr();
           String projectId = '';
           
           if (state is EngineeringProjectsLoaded && state.projects.isNotEmpty) {
             projectName = state.projects.first.name;
             projectId = state.projects.first.id;
+          } else if (state is EngineeringContractsLoaded && state.projects.isNotEmpty) {
+            projectName = state.projects.first.name;
+            projectId = state.projects.first.id;
+          }
+
+          List<ContractModel> contracts = [];
+          if (state is EngineeringContractsLoaded) {
+            contracts = state.contracts;
+          }
+
+          final authState = context.read<AuthCubit>().state;
+          bool canEdit = false;
+          if (authState is AuthSuccess && authState.user.position == 'ProjectManager') {
+            canEdit = true;
           }
 
           return SingleChildScrollView(
@@ -66,7 +82,7 @@ class _EngineeringDashboardScreenState extends State<EngineeringDashboardScreen>
               children: [
                 Expanded(
                   flex: 2,
-                  child: _ContractItemsCard(),
+                  child: _ContractItemsCard(contracts: contracts, canEdit: canEdit),
                 ),
                 const SizedBox(width: 24),
                 Expanded(
@@ -95,7 +111,7 @@ class _EngineeringDashboardScreenState extends State<EngineeringDashboardScreen>
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(AppLocalizations.of(context)?.contractDetails ?? 'Contract Details',
+            Text('contractDetails'.tr(),
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
@@ -183,82 +199,112 @@ class _BaseCard extends StatelessWidget {
 }
 
 class _ContractItemsCard extends StatelessWidget {
+  final List<ContractModel> contracts;
+  final bool canEdit;
+
+  const _ContractItemsCard({required this.contracts, required this.canEdit});
+
   @override
   Widget build(BuildContext context) {
-    return _BaseCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(AppLocalizations.of(context)?.contractItemsDefinition ?? 'Contract Items Definition',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              TextButton.icon(
-                onPressed: () {
-                  context.push('/engineering/create');
-                },
-                icon: const Icon(Icons.add, color: AppColors.primary),
-                label: Text(AppLocalizations.of(context)?.addItem ?? 'Add Item',
-                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
-                ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24.0),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.4),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.5)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: DataTable(
-              headingRowColor: const WidgetStatePropertyAll(AppColors.background),
-              columns: [
-                DataColumn(label: Text(AppLocalizations.of(context)?.itemId ?? 'Item ID')),
-                DataColumn(label: Text(AppLocalizations.of(context)?.description ?? 'Description')),
-                DataColumn(label: Text(AppLocalizations.of(context)?.category ?? 'Category')),
-                DataColumn(label: Text(AppLocalizations.of(context)?.status ?? 'Status')),
-                DataColumn(label: Text(AppLocalizations.of(context)?.actions ?? 'Actions')),
-              ],
-              rows: [
-                _buildItemRow('ITM-001', 'Foundation Concrete', 'Materials', 'Approved', AppColors.success),
-                _buildItemRow('ITM-002', 'Steel Reinforcement', 'Materials', 'In Review', AppColors.warning),
-                _buildItemRow('ITM-003', 'Site Excavation', 'Labor', 'Draft', AppColors.accent),
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('contractItemsDefinition'.tr(),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  if (canEdit)
+                    TextButton.icon(
+                      onPressed: () {
+                        context.push('/engineering/create');
+                      },
+                      icon: const Icon(Icons.add, color: AppColors.primary),
+                      label: Text('addItem'.tr(),
+                        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (contracts.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      children: [
+                        Icon(Icons.description_outlined, size: 64, color: AppColors.textSecondary.withOpacity(0.5)),
+                        const SizedBox(height: 16),
+                        Text('noContractsFound'.tr(), style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                SizedBox(
+                  width: double.infinity,
+                  child: DataTable(
+                    headingRowColor: WidgetStatePropertyAll(AppColors.background.withOpacity(0.5)),
+                    columns: [
+                      DataColumn(label: Text('itemId'.tr())),
+                      DataColumn(label: Text('description'.tr())),
+                      DataColumn(label: Text('quantity'.tr())),
+                      DataColumn(label: Text('price'.tr())),
+                      DataColumn(label: Text('vendor'.tr())),
+                      if (canEdit) DataColumn(label: Text('actions'.tr())),
+                    ],
+                    rows: contracts.expand((contract) {
+                      return contract.items.map((item) {
+                        return _buildItemRow(item, contract, canEdit);
+                      });
+                    }).toList(),
+                  ),
+                ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  DataRow _buildItemRow(String id, String desc, String category, String status, Color statusColor) {
+  DataRow _buildItemRow(ContractItemModel item, ContractModel contract, bool canEdit) {
     return DataRow(
       cells: [
-        DataCell(Text(id, style: const TextStyle(fontWeight: FontWeight.w500))),
-        DataCell(Text(desc)),
-        DataCell(Text(category)),
-        DataCell(
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: statusColor.withOpacity(0.3)),
-            ),
-            child: Text(
-              status,
-              style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
+        DataCell(Text(item.id, style: const TextStyle(fontWeight: FontWeight.w500))),
+        DataCell(Text(item.description)),
+        DataCell(Text(item.quantity.toString())),
+        DataCell(Text('\$${item.price.toStringAsFixed(2)}')),
+        DataCell(Text(contract.vendorName)),
+        if (canEdit)
+          DataCell(
+            IconButton(
+              icon: const Icon(Icons.more_vert, color: AppColors.textSecondary),
+              onPressed: () {},
             ),
           ),
-        ),
-        DataCell(
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: AppColors.textSecondary),
-            onPressed: () {},
-          ),
-        ),
       ],
     );
   }
@@ -278,7 +324,7 @@ class _TermsAndConditionsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(AppLocalizations.of(context)?.termsConditions ?? 'Terms & Conditions',
+          Text('termsConditions'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -327,7 +373,7 @@ class _PricingAndQuantitiesCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(AppLocalizations.of(context)?.pricingQuantities ?? 'Pricing & Quantities',
+              Text('pricingQuantities'.tr(),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
@@ -348,11 +394,11 @@ class _PricingAndQuantitiesCard extends StatelessWidget {
             child: DataTable(
               headingRowColor: const WidgetStatePropertyAll(AppColors.background),
               columns: [
-                DataColumn(label: Text(AppLocalizations.of(context)?.itemId ?? 'Item ID')),
-                DataColumn(label: Text(AppLocalizations.of(context)?.description ?? 'Description')),
-                DataColumn(label: Text(AppLocalizations.of(context)?.qty ?? 'QTY')),
-                DataColumn(label: Text(AppLocalizations.of(context)?.unitPrice ?? 'UNIT PRICE')),
-                DataColumn(label: Text(AppLocalizations.of(context)?.total ?? 'TOTAL')),
+                DataColumn(label: Text('itemId'.tr())),
+                DataColumn(label: Text('description'.tr())),
+                DataColumn(label: Text('qty'.tr())),
+                DataColumn(label: Text('unitPrice'.tr())),
+                DataColumn(label: Text('total'.tr())),
               ],
               rows: [
                 _buildPricingRow('ITM-001', 'Foundation Concrete', '500', '1200.00', '\$600,000.00'),
@@ -426,7 +472,7 @@ class _ProjectDrawingsCardState extends State<_ProjectDrawingsCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(AppLocalizations.of(context)?.projectDrawings ?? 'Project Drawings',
+          Text('projectDrawings'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -484,7 +530,7 @@ class _ProjectDrawingsCardState extends State<_ProjectDrawingsCard> {
                               color: _isDragging ? AppColors.primary : AppColors.textSecondary,
                             ),
                             const SizedBox(height: 12),
-                            Text(AppLocalizations.of(context)?.dragAndDropFilesHere ?? 'Drag and drop files here',
+                            Text('dragAndDropFilesHere'.tr(),
                               style: TextStyle(
                                 color: _isDragging ? AppColors.primary : AppColors.textSecondary,
                                 fontWeight: FontWeight.bold,
@@ -497,7 +543,7 @@ class _ProjectDrawingsCardState extends State<_ProjectDrawingsCard> {
                                   _uploadedFiles.add('mock_file.pdf');
                                 });
                               },
-                              child: Text(AppLocalizations.of(context)?.browseFiles ?? 'Browse Files'),
+                              child: Text('browseFiles'.tr()),
                             ),
                           ],
                         ),

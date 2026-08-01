@@ -1,4 +1,4 @@
-import 'package:sasheco_dashboard_web/l10n/app_localizations.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
@@ -115,7 +115,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(AppLocalizations.of(context)?.overview ?? 'Site Operations Overview',
+            Text('overview'.tr(),
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
@@ -168,7 +168,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
             children: [
               Row(
                 children: [
-                  Text(AppLocalizations.of(context)?.greenValleyInfrastructure ?? 'Green Valley Infrastructure',
+                  Text('greenValleyInfrastructure'.tr(),
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
@@ -182,7 +182,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.grey.shade300),
                     ),
-                    child: Text(AppLocalizations.of(context)?.prj2024089 ?? '#PRJ-2024-089',
+                    child: Text('prj2024089'.tr(),
                       style: TextStyle(
                         color: Colors.grey.shade800,
                         fontSize: 12,
@@ -193,7 +193,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              Text(AppLocalizations.of(context)?.activeConstructionPhase ?? 'Active Construction Phase',
+              Text('activeConstructionPhase'.tr(),
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
               ),
             ],
@@ -207,7 +207,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
                   );
                 },
                 icon: const Icon(Icons.download),
-                label: Text(AppLocalizations.of(context)?.exportData ?? 'Export Data'),
+                label: Text('exportData'.tr()),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   side: const BorderSide(color: AppColors.primary),
@@ -220,7 +220,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
                   context.push('/site/mapping');
                 },
                 icon: const Icon(Icons.settings),
-                label: Text(AppLocalizations.of(context)?.manageSite ?? 'Manage Site'),
+                label: Text('manageSite'.tr()),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0F172A), // Dark navy
                   foregroundColor: Colors.white,
@@ -318,7 +318,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(AppLocalizations.of(context)?.contractActivity ?? 'Contract Activity',
+          Text('contractActivity'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -458,7 +458,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(AppLocalizations.of(context)?.siteReadiness ?? 'Site Readiness',
+          Text('siteReadiness'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -494,7 +494,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
           Center(
             child: TextButton(
               onPressed: () {},
-              child: Text(AppLocalizations.of(context)?.viewFullChecklist ?? 'View Full Checklist',
+              child: Text('viewFullChecklist'.tr(),
                 style: TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,

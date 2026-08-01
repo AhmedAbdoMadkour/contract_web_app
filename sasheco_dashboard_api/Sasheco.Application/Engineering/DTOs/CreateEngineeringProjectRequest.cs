@@ -6,5 +6,5 @@ public class CreateEngineeringProjectRequest
     public string NameAr { get; set; } = string.Empty;
     public string DescriptionEn { get; set; } = string.Empty;
     public string DescriptionAr { get; set; } = string.Empty;
-    public DateTime StartDate { get; set; }
+    public DateTime? StartDate { get; set; }
 }

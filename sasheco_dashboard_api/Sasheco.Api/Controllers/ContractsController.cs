@@ -6,7 +6,7 @@ using Sasheco.Domain.Interfaces;
 
 namespace Sasheco.Api.Controllers;
 
-public record AddContractItemRequest(decimal Price, int Quantity, string Description);
+public record AddContractItemRequest(decimal Price, int Quantity, string DescriptionEn, string DescriptionAr);
 public record UpdateContractTermsRequest(string TermsAndConditions);
 public record UpdateContractFinancialsRequest(decimal AdvancePayment, string PaymentTerms);
 public record ApproveContractRequest(string Comments);
@@ -68,7 +68,8 @@ public class ContractsController : ControllerBase
             ContractId = id,
             Price = request.Price,
             Quantity = request.Quantity,
-            Description = request.Description
+            DescriptionEn = request.DescriptionEn,
+            DescriptionAr = request.DescriptionAr
         };
 
         await _contractItemRepository.AddAsync(item);

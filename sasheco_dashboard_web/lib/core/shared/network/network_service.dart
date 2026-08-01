@@ -5,6 +5,7 @@ import '../../../../flavors.dart';
 class NetworkService {
   late final Dio _dio;
   String? Function()? getToken;
+  static String currentLanguage = 'en';
 
   NetworkService() {
     _dio = Dio(
@@ -27,6 +28,9 @@ class NetworkService {
             if (token != null && token.isNotEmpty) {
               options.headers['Authorization'] = 'Bearer $token';
             }
+          }
+          if (NetworkService.currentLanguage.isNotEmpty) {
+            options.headers['Accept-Language'] = NetworkService.currentLanguage;
           }
           return handler.next(options);
         },

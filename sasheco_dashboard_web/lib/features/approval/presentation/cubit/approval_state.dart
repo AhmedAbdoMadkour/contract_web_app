@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../data/model/approval_model.dart';
+import '../../data/model/approval_history_model.dart';
 
 abstract class ApprovalState extends Equatable {
   const ApprovalState();
@@ -19,6 +20,17 @@ class ApprovalLoaded extends ApprovalState {
 
   @override
   List<Object?> get props => [approvals];
+}
+
+class ApprovalHistoryLoading extends ApprovalState {}
+
+class ApprovalHistoryLoaded extends ApprovalState {
+  final List<ApprovalHistoryModel> history;
+
+  const ApprovalHistoryLoaded(this.history);
+
+  @override
+  List<Object?> get props => [history];
 }
 
 class ApprovalActionLoading extends ApprovalState {

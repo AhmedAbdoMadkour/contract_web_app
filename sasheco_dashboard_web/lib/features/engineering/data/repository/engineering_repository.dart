@@ -3,6 +3,7 @@ import '../../../../core/shared/error/failures.dart';
 import '../../../../core/shared/error/error_handler.dart';
 import '../../../../core/shared/network/network_service.dart';
 import '../model/engineering_project_model.dart';
+import '../model/contract_model.dart';
 
 class EngineeringRepository {
   final NetworkService _networkService;
@@ -59,6 +60,17 @@ class EngineeringRepository {
         },
       );
       return const Right(null);
+    } catch (e) {
+      return Left(ErrorHandler.handleException(e));
+    }
+  }
+
+  Future<Either<Failure, List<ContractModel>>> getProjectContracts(String id) async {
+    try {
+      final response = await _networkService.get('/api/Engineering/projects/$id/contracts');
+      final List<dynamic> data = response.data;
+      final contracts = data.map((json) => ContractModel.fromJson(json as Map<String, dynamic>)).toList();
+      return Right(contracts);
     } catch (e) {
       return Left(ErrorHandler.handleException(e));
     }

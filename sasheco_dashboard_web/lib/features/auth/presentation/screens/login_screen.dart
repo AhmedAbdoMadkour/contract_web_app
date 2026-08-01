@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sasheco_dashboard_web/core/widgets/glass_container.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
 import 'package:sasheco_dashboard_web/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (username.isEmpty || password.isEmpty) {
       setState(() {
-        _errorMessage = 'Please enter both username and password';
+        _errorMessage = 'error_enter_credentials'.tr();
       });
       return;
     }
@@ -88,6 +89,34 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
+              // Language Toggles
+              Positioned(
+                top: 24,
+                right: 24,
+                child: Row(
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        context.setLocale(const Locale('en'));
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: context.locale.languageCode == 'en' ? AppColors.accent : Colors.white54,
+                      ),
+                      child: const Text('EN', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    const Text('|', style: TextStyle(color: Colors.white54)),
+                    TextButton(
+                      onPressed: () {
+                        context.setLocale(const Locale('ar'));
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: context.locale.languageCode == 'ar' ? AppColors.accent : Colors.white54,
+                      ),
+                      child: const Text('AR', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
               Center(
                 child: SingleChildScrollView(
                   child: GlassContainer(
@@ -102,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 32),
                         Text(
-                          'Welcome to SASHECO',
+                          'welcome_to_sasheco'.tr(),
                           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -111,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Sign in to your account',
+                          'sign_in_to_account'.tr(),
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.white70,
                           ),
@@ -138,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _usernameController,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
-                            labelText: 'Username or Email',
+                            labelText: 'username_or_email'.tr(),
                             labelStyle: const TextStyle(color: Colors.white70),
                             prefixIcon: const Icon(Icons.person_outline, color: Colors.white70),
                             filled: true,
@@ -163,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           obscureText: true,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
-                            labelText: 'Password',
+                            labelText: 'password'.tr(),
                             labelStyle: const TextStyle(color: Colors.white70),
                             prefixIcon: const Icon(Icons.lock_outline, color: Colors.white70),
                             filled: true,
@@ -184,11 +213,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 16),
                         Align(
-                          alignment: Alignment.centerRight,
+                          alignment: AlignmentDirectional.centerEnd,
                           child: TextButton(
                             onPressed: () {},
                             style: TextButton.styleFrom(foregroundColor: Colors.white70),
-                            child: const Text('Forgot Password?'),
+                            child: Text('forgot_password'.tr()),
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -212,10 +241,29 @@ class _LoginScreenState extends State<LoginScreen> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text(
-                                  'Sign In',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              : Text(
+                                  'sign_in'.tr(),
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
+                        ),
+                        const SizedBox(height: 16),
+                        OutlinedButton(
+                          onPressed: () {
+                            // Navigate to Create Account screen
+                            // context.go('/create-account');
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.accent,
+                            side: const BorderSide(color: AppColors.accent, width: 2),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(9999),
+                            ),
+                          ),
+                          child: Text(
+                            'create_account'.tr(),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ],
                     ),

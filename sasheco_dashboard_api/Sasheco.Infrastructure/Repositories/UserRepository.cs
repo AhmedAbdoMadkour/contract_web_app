@@ -11,11 +11,11 @@ public class UserRepository : Repository<User>, IUserRepository
     {
     }
 
-    public async Task<User?> GetByEmployeeNumberAsync(string employeeNumber, CancellationToken cancellationToken = default)
+    public async Task<User?> GetByEmployeeNumberAsync(string identifier, CancellationToken cancellationToken = default)
     {
         return await _dbSet
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.EmployeeNumber == employeeNumber, cancellationToken);
+            .FirstOrDefaultAsync(u => u.EmployeeNumber == identifier || u.Name == identifier || u.Email == identifier, cancellationToken);
     }
 
     public async Task<IEnumerable<Permission>> GetUserPermissionsAsync(Guid userId, CancellationToken cancellationToken = default)

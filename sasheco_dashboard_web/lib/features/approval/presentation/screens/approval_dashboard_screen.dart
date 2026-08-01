@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
 import '../cubit/approval_cubit.dart';
 import '../cubit/approval_state.dart';
+import '../widgets/approval_action_dialog.dart';
+import '../widgets/approval_history_pane.dart';
 
 class ApprovalDashboardScreen extends StatefulWidget {
   const ApprovalDashboardScreen({super.key});
@@ -125,26 +127,22 @@ class _ApprovalDashboardScreenState extends State<ApprovalDashboardScreen> {
         Row(
           children: [
             OutlinedButton(
-              onPressed: currentId == null ? null : () {
-                context.read<ApprovalCubit>().rejectRequest(currentId);
-              },
+              onPressed: currentId == null ? null : () => _showActionDialog(context, currentId),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red),
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: const Text('Reject', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text('Take Action', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
             const SizedBox(width: 16),
             ElevatedButton.icon(
-              onPressed: currentId == null ? null : () {
-                context.read<ApprovalCubit>().approveRequest(currentId);
-              },
-              icon: const Icon(Icons.check_circle_outline),
-              label: const Text('Approve Contract', style: TextStyle(fontWeight: FontWeight.bold)),
+              onPressed: currentId == null ? null : () => _showHistoryPane(context, currentId),
+              icon: const Icon(Icons.history),
+              label: const Text('View History', style: TextStyle(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.success,
+                backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -155,6 +153,32 @@ class _ApprovalDashboardScreenState extends State<ApprovalDashboardScreen> {
       ],
     );
   }
+
+  void _showActionDialog(BuildContext context, String id) {
+    showDialog(
+      context: context,
+      builder: (ctx) => ApprovalActionDialog(
+        approvalId: id,
+        onApprove: (id, comments, evidenceUrl) {
+          context.read<ApprovalCubit>().approveRequest(id, comments, evidenceUrl);
+        },
+        onReject: (id, comments, evidenceUrl) {
+          context.read<ApprovalCubit>().rejectRequest(id, comments, evidenceUrl);
+        },
+      ),
+    );
+  }
+
+  void _showHistoryPane(BuildContext context, String id) {
+    context.read<ApprovalCubit>().fetchApprovalHistory(id);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => ApprovalHistoryPane(approvalId: id),
+    );
+  }
+
 
   Widget _buildKPICards(BuildContext context, String currentStatus) {
     return Row(

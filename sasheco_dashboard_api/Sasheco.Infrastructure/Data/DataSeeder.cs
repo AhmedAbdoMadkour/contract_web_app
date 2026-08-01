@@ -35,12 +35,12 @@ public static class DataSeeder
             await context.SaveChangesAsync();
         }
 
-        if (!await context.EngineeringProjects.AnyAsync())
+        if (!context.Projects.Any())
         {
-            context.EngineeringProjects.AddRange(
-                new EngineeringProject { Id = Guid.NewGuid(), NameEn = "Alpha Bridge Renovation", Status = "Active", StartDate = DateTime.UtcNow.AddDays(-30) },
-                new EngineeringProject { Id = Guid.NewGuid(), NameEn = "Beta Commercial Tower", Status = "Active", StartDate = DateTime.UtcNow.AddDays(-15) },
-                new EngineeringProject { Id = Guid.NewGuid(), NameEn = "Gamma Residential Complex", Status = "Completed", StartDate = DateTime.UtcNow.AddDays(-150) }
+            context.Projects.AddRange(
+                new Project { Id = Guid.NewGuid(), ProjectCode = "PRJ-2024-001", NameEn = "Office Building A", NameAr = "مبنى مكاتب أ", DescriptionEn = "Construction of new office building", DescriptionAr = "بناء مبنى مكاتب جديد", Status = "In Progress", StartDate = DateTime.UtcNow.AddDays(-30) },
+                new Project { Id = Guid.NewGuid(), ProjectCode = "PRJ-2024-002", NameEn = "Residential Complex", NameAr = "مجمع سكني", DescriptionEn = "Phase 1 of residential complex", DescriptionAr = "المرحلة الأولى من المجمع السكني", Status = "Planning", StartDate = DateTime.UtcNow.AddDays(15) },
+                new Project { Id = Guid.NewGuid(), ProjectCode = "PRJ-2024-003", NameEn = "Highway Maintenance", NameAr = "صيانة الطريق السريع", DescriptionEn = "Annual highway maintenance contract", DescriptionAr = "عقد صيانة الطريق السريع السنوي", Status = "Completed", StartDate = DateTime.UtcNow.AddMonths(-6) }
             );
             await context.SaveChangesAsync();
         }
@@ -48,9 +48,9 @@ public static class DataSeeder
         if (!await context.Approvals.AnyAsync())
         {
             context.Approvals.AddRange(
-                new Approval { Id = Guid.NewGuid(), Title = "Bridge Budget Approval", Status = "Pending", CreatedAt = DateTime.UtcNow },
-                new Approval { Id = Guid.NewGuid(), Title = "Tower Blueprint Review", Status = "Pending", CreatedAt = DateTime.UtcNow.AddDays(-1) },
-                new Approval { Id = Guid.NewGuid(), Title = "Site Safety Audit", Status = "Approved", CreatedAt = DateTime.UtcNow.AddDays(-5) }
+                new Approval { Id = Guid.NewGuid(), TitleEn = "Bridge Budget Approval", TitleAr = "موافقة ميزانية الجسر", Status = "Pending", CreatedAt = DateTime.UtcNow },
+                new Approval { Id = Guid.NewGuid(), TitleEn = "Tower Blueprint Review", TitleAr = "مراجعة مخطط البرج", Status = "Pending", CreatedAt = DateTime.UtcNow.AddDays(-1) },
+                new Approval { Id = Guid.NewGuid(), TitleEn = "Site Safety Audit", TitleAr = "تدقيق سلامة الموقع", Status = "Approved", CreatedAt = DateTime.UtcNow.AddDays(-5) }
             );
             await context.SaveChangesAsync();
         }
