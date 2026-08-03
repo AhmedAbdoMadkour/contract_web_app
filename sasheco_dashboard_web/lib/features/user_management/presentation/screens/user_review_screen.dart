@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../cubit/user_management_cubit.dart';
 import '../cubit/user_management_state.dart';
 import '../../data/model/user_model.dart';
@@ -28,7 +30,7 @@ class _UserReviewScreenState extends State<UserReviewScreen> {
     });
   }
 
-  final List<UserModel> _fallbackDemoUsers = const [
+  final List<UserModel> _fallbackDemoUsers = [
     UserModel(
       id: '1',
       name: 'Emma Smith',
@@ -229,10 +231,11 @@ class _UserReviewScreenState extends State<UserReviewScreen> {
             ),
             const SizedBox(width: 16),
             SegmentedButton<String>(
+              showSelectedIcon: false,
               segments: const [
-                ButtonSegment(value: 'All', label: Text('All')),
-                ButtonSegment(value: 'Active', label: Text('Active')),
-                ButtonSegment(value: 'Inactive', label: Text('Inactive')),
+                ButtonSegment(value: 'All', label: Text('All', softWrap: false)),
+                ButtonSegment(value: 'Active', label: Text('Active', softWrap: false)),
+                ButtonSegment(value: 'Inactive', label: Text('Inactive', softWrap: false)),
               ],
               selected: {_selectedRoleFilter},
               onSelectionChanged: (set) {
@@ -303,38 +306,28 @@ class _UserReviewScreenState extends State<UserReviewScreen> {
     );
   }
 
-  // --- KANBAN VIEW (Attachment 1 Inspiration) ---
+  // --- KANBAN VIEW (3 column Grid) ---
   Widget _buildKanbanView(BuildContext context, List<UserModel> users) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Hero Featured Card inspired by Attachment 1
+        // Hero Featured Card
         _buildHeroBannerCard(context),
         const SizedBox(height: 24),
-        // Kanban Columns
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: _buildKanbanColumn(
-                context,
-                title: 'Active Experts',
-                count: users.where((u) => u.isActive).length,
-                color: AppColors.success,
-                users: users.where((u) => u.isActive).toList(),
-              ),
-            ),
-            const SizedBox(width: 24),
-            Expanded(
-              child: _buildKanbanColumn(
-                context,
-                title: 'Review / Inactive',
-                count: users.where((u) => !u.isActive).length,
-                color: AppColors.warning,
-                users: users.where((u) => !u.isActive).toList(),
-              ),
-            ),
-          ],
+        // 3 Column Grid
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 24,
+            mainAxisSpacing: 24,
+            childAspectRatio: 0.8,
+          ),
+          itemCount: users.length,
+          itemBuilder: (context, index) {
+            return _buildKanbanUserCard(context, users[index]);
+          },
         ),
       ],
     );
@@ -521,143 +514,256 @@ class _UserReviewScreenState extends State<UserReviewScreen> {
     final imageUrl = demoImages[user.name.hashCode.abs() % demoImages.length];
 
     return Container(
-      height: 280,
+      width: 320,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 10),
+          )
         ],
+        // Silver brushed metal background gradient
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFFE2E2E2),
+            Color(0xFFC9C9C9),
+            Color(0xFFE2E2E2),
+          ],
+        ),
+        border: Border.all(color: const Color(0xFF9CA3AF), width: 1.5),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         child: Stack(
           children: [
-            // Background Image
-            Positioned.fill(
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-              ),
-            ),
-            // Top action button overlay
-            Positioned(
-              top: 12,
-              right: 12,
+            // --- Navy Blue Background Header (Diagonal Cut) ---
+            ClipPath(
+              clipper: _GreenHeaderClipper(),
               child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.35),
-                  shape: BoxShape.circle,
-                ),
-                child: PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, color: Colors.white, size: 20),
-                  onSelected: (val) {
-                    if (val == 'toggle') {
-                      context.read<UserManagementCubit>().updateUser(
-                            UserModel(
-                              id: user.id,
-                              name: user.name,
-                              email: user.email,
-                              role: user.role,
-                              isActive: !user.isActive,
-                            ),
-                          );
-                    } else if (val == 'delete') {
-                      context.read<UserManagementCubit>().deleteUser(user.id);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'toggle',
-                      child: Text(user.isActive ? 'Deactivate User' : 'Activate User'),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Text('Delete User', style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Glassmorphic Bottom Overlay Container (Matching attached design)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
+                width: double.infinity,
+                height: 320,
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                     colors: [
-                      Colors.black.withValues(alpha: 0.0),
-                      Colors.black.withValues(alpha: 0.65),
-                      Colors.black.withValues(alpha: 0.88),
+                      Color(0xFF2E3D5A), // Navy blue
+                      Color(0xFF1B263B), // Darker navy
                     ],
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            user.name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              letterSpacing: 0.3,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            // --- Three-dot Menu ---
+            Positioned(
+              right: 8,
+              top: 8,
+              child: PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, color: Colors.white),
+                onSelected: (val) {
+                  if (val == 'toggle') {
+                    context.read<UserManagementCubit>().updateUser(
+                          UserModel(
+                            id: user.id,
+                            name: user.name,
+                            email: user.email,
+                            role: user.role,
+                            isActive: !user.isActive,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            user.role.isNotEmpty ? user.role : 'UX/UI Designer',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
+                        );
+                  } else if (val == 'delete') {
+                    context.read<UserManagementCubit>().deleteUser(user.id);
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'toggle',
+                    child: Text(user.isActive ? 'Deactivate User' : 'Activate User'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Text('Delete User', style: TextStyle(color: Colors.red)),
+                  ),
+                ],
+              ),
+            ),
+            
+            // --- Content Column ---
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Title Area
+                Padding(
+                  padding: const EdgeInsets.only(top: 16, left: 24, right: 48), // Padding for menu
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'SASHECO',
+                        style: GoogleFonts.robotoMono(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 4.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 30),
+                
+                // Avatar and Fingerprint Row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Avatar
+                      Container(
+                        width: 120,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFB0B0B0), // Grey avatar background
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFF71717A), width: 1.5),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: user.avatarBytes != null && user.avatarBytes!.isNotEmpty
+                              ? Image.memory(user.avatarBytes!, fit: BoxFit.cover)
+                              : Image.network(imageUrl, fit: BoxFit.cover),
+                        ),
+                      ),
+                      const Spacer(),
+                      // QR Code with Scanner Brackets
+                      Container(
+                        width: 95,
+                        height: 150,
+                        alignment: Alignment.center,
+                        child: SizedBox(
+                          width: 95,
+                          height: 95,
+                            child: Stack(
+                              children: [
+                                Positioned(top: 0, left: 0, child: _buildCorner(top: true, left: true, color: const Color(0xFFE7BA41))),
+                                Positioned(top: 0, right: 0, child: _buildCorner(top: true, left: false, color: const Color(0xFFE7BA41))),
+                                Positioned(bottom: 0, left: 0, child: _buildCorner(top: false, left: true, color: const Color(0xFFE7BA41))),
+                                Positioned(bottom: 0, right: 0, child: _buildCorner(top: false, left: false, color: const Color(0xFFE7BA41))),
+                                Center(
+                                  child: QrImageView(
+                                    data: user.email,
+                                    version: QrVersions.auto,
+                                    size: 75.0,
+                                    backgroundColor: Colors.transparent,
+                                    foregroundColor: const Color(0xFFE7BA41),
+                                  ),
+                                ),
+                              ],
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Name Section
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user.name.isEmpty ? 'UNKNOWN USER' : user.name.toUpperCase(),
+                        style: GoogleFonts.robotoMono(
+                          fontSize: 22, // Reduced size
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF2E3D5A), // Navy blue color
+                          letterSpacing: 1.5,
+                        ),
+                        maxLines: 2, // Allow wrapping if still long
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user.email.toUpperCase(),
+                        style: GoogleFonts.robotoMono(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF4B5563),
+                          letterSpacing: 1.0,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 12),
+                      Container(height: 1.5, color: const Color(0xFF4B5563)),
+                      const SizedBox(height: 12),
+                      
+                      // Data Grid
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 5,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildInfoField('POSITION:', user.role.isEmpty ? 'ADMIN' : user.role.toUpperCase()),
+                                const SizedBox(height: 12),
+                                _buildInfoField('DATE ISSUED:', '2020-11-30'),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            flex: 4,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildInfoField('DATE OF BIRTH:', '2002-04-20'),
+                                const SizedBox(height: 12),
+                                _buildInfoField('EXPIRATION DATE:', '2025-06-05'),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Glassy Pill Badge (exact match to $1,200 pill in screenshot)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.4),
-                          width: 1.2,
-                        ),
-                      ),
-                      child: Text(
-                        user.isActive ? '\$1,200' : 'Pending',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      _buildInfoField('LAB ID NO:', user.id.length > 8 ? user.id.substring(0, 8).toUpperCase() : user.id),
+                    ],
+                  ),
                 ),
-              ),
+                
+                const Spacer(),
+                
+                // Barcode Section
+                Container(
+                  height: 60,
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(75, (index) {
+                      double barWidth = 1.0;
+                      if (index % 7 == 0 || index % 11 == 0) barWidth = 4.0;
+                      else if (index % 5 == 0 || index % 13 == 0) barWidth = 3.0;
+                      else if (index % 2 == 0) barWidth = 2.0;
+                      
+                      return Container(
+                        width: barWidth,
+                        color: const Color(0xFF1F2937), // Dark grey almost black
+                      );
+                    }),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -665,6 +771,49 @@ class _UserReviewScreenState extends State<UserReviewScreen> {
     );
   }
 
+  Widget _buildCorner({required bool top, required bool left, required Color color}) {
+    return Container(
+      width: 16,
+      height: 16,
+      decoration: BoxDecoration(
+        border: Border(
+          top: top ? BorderSide(color: color, width: 2) : BorderSide.none,
+          bottom: !top ? BorderSide(color: color, width: 2) : BorderSide.none,
+          left: left ? BorderSide(color: color, width: 2) : BorderSide.none,
+          right: !left ? BorderSide(color: color, width: 2) : BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoField(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.robotoMono(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF4B5563),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: GoogleFonts.robotoMono(
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+            color: const Color(0xFF1F2937),
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 2),
+        Container(height: 1, width: double.infinity, color: const Color(0xFF9CA3AF)),
+      ],
+    );
+  }
   // --- LIST VIEW (Attachment 2 Inspiration) ---
   Widget _buildListView(BuildContext context, List<UserModel> users) {
     return Container(
@@ -749,10 +898,11 @@ class _UserReviewScreenState extends State<UserReviewScreen> {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: AppColors.primary,
-                  child: Text(
+                  backgroundImage: user.avatarBytes != null && user.avatarBytes!.isNotEmpty ? MemoryImage(user.avatarBytes!) : null,
+                  child: (user.avatarBytes == null || user.avatarBytes!.isEmpty) ? Text(
                     user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
+                  ) : null,
                 ),
                 const SizedBox(width: 12),
                 Column(
@@ -864,4 +1014,22 @@ class _UserReviewScreenState extends State<UserReviewScreen> {
       ),
     );
   }
+}
+
+class _GreenHeaderClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    path.lineTo(0, 100);
+    path.lineTo(size.width * 0.45, 100);
+    path.lineTo(size.width * 0.52, 130); // Diagonal cut
+    path.lineTo(size.width * 0.52, size.height);
+    path.lineTo(size.width, size.height);
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

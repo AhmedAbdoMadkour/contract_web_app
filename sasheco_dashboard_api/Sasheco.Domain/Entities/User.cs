@@ -15,4 +15,5 @@ public class User
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public Guid RoleId { get; set; }
     public Role? Role { get; set; }
+    public string? AvatarBase64 { get; set; }
 }

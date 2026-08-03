@@ -37,7 +37,8 @@ namespace Sasheco.Api.Controllers
                     LastName = u.LastName,
                     Role = u.Role != null ? u.Role.Name : string.Empty,
                     IsActive = u.IsActive,
-                    CreatedAt = u.CreatedAt
+                    CreatedAt = u.CreatedAt,
+                    AvatarBase64 = u.AvatarBase64
                 })
                 .ToListAsync(cancellationToken);
             
@@ -58,7 +59,8 @@ namespace Sasheco.Api.Controllers
                     LastName = u.LastName,
                     Role = u.Role != null ? u.Role.Name : string.Empty,
                     IsActive = u.IsActive,
-                    CreatedAt = u.CreatedAt
+                    CreatedAt = u.CreatedAt,
+                    AvatarBase64 = u.AvatarBase64
                 })
                 .FirstOrDefaultAsync(cancellationToken);
             
@@ -70,6 +72,8 @@ namespace Sasheco.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<UserDTO>> CreateUser([FromBody] CreateUserDTO createUserDto, CancellationToken cancellationToken)
         {
+            Console.WriteLine($"[DEBUG] CreateUser called for {createUserDto.Email}. AvatarBase64 length: {(createUserDto.AvatarBase64 != null ? createUserDto.AvatarBase64.Length.ToString() : "NULL")}");
+            
             var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == createUserDto.Role, cancellationToken);
             
             var user = new User
@@ -81,7 +85,8 @@ namespace Sasheco.Api.Controllers
                 Name = $"{createUserDto.FirstName} {createUserDto.LastName}",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password),
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                AvatarBase64 = createUserDto.AvatarBase64
             };
 
             if (role == null)
@@ -105,7 +110,8 @@ namespace Sasheco.Api.Controllers
                 LastName = user.LastName,
                 Role = role != null ? role.Name : string.Empty,
                 IsActive = user.IsActive,
-                CreatedAt = user.CreatedAt
+                CreatedAt = user.CreatedAt,
+                AvatarBase64 = user.AvatarBase64
             };
             
             return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, dto);

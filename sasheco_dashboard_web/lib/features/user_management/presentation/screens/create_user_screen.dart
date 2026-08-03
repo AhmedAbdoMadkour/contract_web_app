@@ -8,6 +8,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sasheco_dashboard_web/features/user_management/presentation/cubit/user_management_cubit.dart';
 import 'package:sasheco_dashboard_web/features/user_management/presentation/cubit/user_management_state.dart';
 import 'package:sasheco_dashboard_web/features/user_management/data/model/user_model.dart';
+import 'package:go_router/go_router.dart';
+
 class CreateUserScreen extends StatefulWidget {
   const CreateUserScreen({super.key});
 
@@ -18,6 +20,7 @@ class CreateUserScreen extends StatefulWidget {
 class _CreateUserScreenState extends State<CreateUserScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   String _selectedRole = 'analyst';
   final _formKey = GlobalKey<FormState>();
 
@@ -44,6 +47,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -57,6 +61,8 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
           );
           _nameController.clear();
           _emailController.clear();
+          _passwordController.clear();
+          context.go('/user-review');
         } else if (state is UserManagementError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message, style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red),
@@ -119,8 +125,10 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
                             Row(
                               children: [
                                 Expanded(
-                                  child: _buildTextField('Email', 'e.g. user@example.com', controller: _emailController, validator: (val) {
+                                  child: _buildTextField('Email', 'e.g. user@example.com', controller: _emailController, keyboardType: TextInputType.emailAddress, validator: (val) {
                                     if (val == null || val.isEmpty) return 'Email is required';
+                                    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                                    if (!emailRegex.hasMatch(val)) return 'Enter a valid email';
                                     return null;
                                   }),
                                 ),
@@ -153,6 +161,20 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
                                 ),
                               ],
                             ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildTextField('Password', 'Enter secure password', controller: _passwordController, obscureText: true, validator: (val) {
+                                    if (val == null || val.isEmpty) return 'Password is required';
+                                    if (val.length < 6) return 'Must be at least 6 characters';
+                                    return null;
+                                  }),
+                                ),
+                                const SizedBox(width: 16),
+                                const Expanded(child: SizedBox()), // Placeholder to keep grid alignment
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -172,6 +194,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
                         onPressed: () {
                           _nameController.clear();
                           _emailController.clear();
+                          _passwordController.clear();
                           setState(() {
                             _avatarBytes = null;
                             _avatarFileName = null;
@@ -194,6 +217,8 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
                               email: _emailController.text,
                               role: _selectedRole,
                               isActive: true,
+                              password: _passwordController.text,
+                              avatarBytes: _avatarBytes,
                             );
                             context.read<UserManagementCubit>().createUser(user);
                           }
@@ -225,6 +250,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
     bool obscureText = false,
     TextEditingController? controller,
     String? Function(String?)? validator,
+    TextInputType? keyboardType,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,6 +261,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
           controller: controller,
           readOnly: readOnly,
           obscureText: obscureText,
+          keyboardType: keyboardType,
           validator: validator,
           decoration: InputDecoration(
             hintText: hint,

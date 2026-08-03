@@ -22,7 +22,7 @@ class AuthCubit extends HydratedCubit<AuthState> {
     final result = await _authRepository.login(request);
     
     result.fold(
-      (failure) => emit(const AuthFailure('Invalid credentials. Please use admin / password.')),
+      (failure) => emit(AuthFailure(failure.message)),
       (user) => emit(AuthSuccess(user)),
     );
   }

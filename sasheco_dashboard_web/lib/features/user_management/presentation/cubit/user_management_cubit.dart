@@ -16,6 +16,16 @@ class UserManagementCubit extends Cubit<UserManagementState> {
     result.fold(
       (failure) => emit(UserManagementError(failure.message)),
       (users) {
+        for (var i = 0; i < users.length; i++) {
+          final existingIdx = _currentUsers.indexWhere((u) => 
+            u.id == users[i].id || 
+            (u.email.isNotEmpty && u.email.toLowerCase() == users[i].email.toLowerCase()) ||
+            (u.name.isNotEmpty && u.name.toLowerCase() == users[i].name.toLowerCase())
+          );
+          if (existingIdx != -1 && _currentUsers[existingIdx].avatarBytes != null) {
+            users[i] = users[i].copyWith(avatarBytes: _currentUsers[existingIdx].avatarBytes);
+          }
+        }
         _currentUsers = users;
         emit(UserManagementLoaded(users));
       },
@@ -32,6 +42,9 @@ class UserManagementCubit extends Cubit<UserManagementState> {
         emit(UserManagementLoaded(_currentUsers)); // Restore previous state
       },
       (newUser) {
+        if (user.avatarBytes != null) {
+          newUser = newUser.copyWith(avatarBytes: user.avatarBytes);
+        }
         _currentUsers = List.from(_currentUsers)..add(newUser);
         emit(UserManagementOperationSuccess('User created successfully.', _currentUsers));
         emit(UserManagementLoaded(_currentUsers));

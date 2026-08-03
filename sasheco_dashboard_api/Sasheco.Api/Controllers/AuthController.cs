@@ -40,9 +40,13 @@ public class AuthController : ControllerBase
 
         var user = await _userRepository.GetByEmployeeNumberAsync(request.EmployeeNumber);
 
-        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        if (user == null)
         {
-            return Unauthorized(new { message = "Invalid credentials" });
+            return Unauthorized(new { message = "User not found" });
+        }
+        if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        {
+            return Unauthorized(new { message = "Password mismatch" });
         }
 
         var token = _jwtService.GenerateToken(user);

@@ -82,7 +82,7 @@ public class SashecoDbContext : DbContext
         modelBuilder.Entity<User>().HasData(new User 
         { 
             Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), 
-            EmployeeNumber = "EMP001",
+            EmployeeNumber = "admin",
             Name = "admin", 
             FirstName = "System",
             LastName = "Admin",

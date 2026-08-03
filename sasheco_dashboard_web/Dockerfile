@@ -8,7 +8,7 @@ COPY . .
 RUN flutter pub get
 
 # Build for web
-RUN flutter build web --release
+RUN flutter build web --release --no-tree-shake-icons
 
 # Stage 2: Serve the application with Nginx
 FROM nginx:alpine

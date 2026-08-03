@@ -809,6 +809,9 @@ namespace Sasheco.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AvatarBase64")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -862,7 +865,7 @@ namespace Sasheco.Infrastructure.Migrations
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@sasheco.com",
-                            EmployeeNumber = "EMP001",
+                            EmployeeNumber = "admin",
                             FirstName = "System",
                             IsActive = true,
                             LastName = "Admin",
