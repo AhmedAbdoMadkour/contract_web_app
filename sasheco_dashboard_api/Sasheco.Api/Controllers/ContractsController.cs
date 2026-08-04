@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Sasheco.Application.DTOs;
 using Sasheco.Domain.Entities;
 using Sasheco.Domain.Interfaces;
+using Sasheco.Infrastructure.Data;
 
 namespace Sasheco.Api.Controllers;
 
@@ -10,6 +12,7 @@ public record AddContractItemRequest(decimal Price, int Quantity, string Descrip
 public record UpdateContractTermsRequest(string TermsAndConditions);
 public record UpdateContractFinancialsRequest(decimal AdvancePayment, string PaymentTerms);
 public record ApproveContractRequest(string Comments);
+public record UpdateContractStatusRequest(string Status);
 
 [ApiController]
 [Route("api/[controller]")]
@@ -18,13 +21,27 @@ public class ContractsController : ControllerBase
 {
     private readonly IRepository<Contract> _contractRepository;
     private readonly IRepository<ContractItem> _contractItemRepository;
+    private readonly SashecoDbContext _context;
 
     public ContractsController(
         IRepository<Contract> contractRepository,
-        IRepository<ContractItem> contractItemRepository)
+        IRepository<ContractItem> contractItemRepository,
+        SashecoDbContext context)
     {
         _contractRepository = contractRepository;
         _contractItemRepository = contractItemRepository;
+        _context = context;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllContracts()
+    {
+        var contracts = await _context.Contracts
+            .Include(c => c.Project)
+            .Include(c => c.Vendor)
+            .ToListAsync();
+
+        return Ok(contracts);
     }
 
     [HttpPost]
@@ -114,5 +131,22 @@ public class ContractsController : ControllerBase
         await _contractRepository.UpdateAsync(contract);
         
         return Ok(new { message = "Contract approved." });
+    }
+
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateContractStatusRequest request)
+    {
+        var contract = await _contractRepository.GetByIdAsync(id);
+        if (contract == null) return NotFound();
+
+        if (!Enum.TryParse<ContractStatus>(request.Status, true, out var status))
+        {
+            return BadRequest(new { message = "Invalid contract status." });
+        }
+
+        contract.Status = status;
+        await _contractRepository.UpdateAsync(contract);
+        
+        return NoContent();
     }
 }

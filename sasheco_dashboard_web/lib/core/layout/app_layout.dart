@@ -142,6 +142,7 @@ class _AppLayoutState extends State<AppLayout> {
                     padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 8 : 16),
                     children: [
                       _buildNavItem(context, 'dashboard'.tr(), Icons.dashboard_outlined, '/dashboard', isCollapsed),
+                      _buildNavItem(context, 'Contracts', Icons.assignment_outlined, '/contracts', isCollapsed),
                       if (isAdmin || isProjectManager)
                         _buildNavItem(context, 'users_review'.tr(), Icons.people_alt_outlined, '/user-review', isCollapsed),
                       if (isAdmin || isProjectManager)

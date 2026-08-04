@@ -7,19 +7,8 @@ import 'package:sasheco_dashboard_web/features/vendor/presentation/cubit/vendor_
 import 'package:sasheco_dashboard_web/features/vendor/presentation/cubit/vendor_state.dart';
 import 'package:sasheco_dashboard_web/features/vendor/presentation/screens/create_vendor_dialog.dart';
 
-class VendorDashboardScreen extends StatefulWidget {
+class VendorDashboardScreen extends StatelessWidget {
   const VendorDashboardScreen({super.key});
-
-  @override
-  State<VendorDashboardScreen> createState() => _VendorDashboardScreenState();
-}
-
-class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<VendorCubit>().getVendors();
-  }
 
   void _showCreateVendorDialog(BuildContext context) {
     showDialog(

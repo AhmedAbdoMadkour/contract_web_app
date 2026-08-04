@@ -12,10 +12,20 @@ import 'package:sasheco_dashboard_web/features/vendor/presentation/screens/vendo
 import 'package:sasheco_dashboard_web/features/site/presentation/screens/site_dashboard_screen.dart';
 import 'package:sasheco_dashboard_web/features/site/presentation/screens/site_mapping_screen.dart';
 import 'package:sasheco_dashboard_web/features/user_management/presentation/screens/user_review_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:sasheco_dashboard_web/core/router/go_router_refresh_stream.dart';
 import 'package:sasheco_dashboard_web/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:sasheco_dashboard_web/core/layout/app_layout.dart';
+import 'package:sasheco_dashboard_web/features/dashboard/presentation/cubit/dashboard_cubit.dart';
+import 'package:sasheco_dashboard_web/features/engineering/presentation/cubit/engineering_cubit.dart';
+import 'package:sasheco_dashboard_web/features/secretary/presentation/cubit/secretary_cubit.dart';
+import 'package:sasheco_dashboard_web/features/finance/presentation/cubit/finance_cubit.dart';
+import 'package:sasheco_dashboard_web/features/vendor/presentation/cubit/vendor_cubit.dart';
+import 'package:flutter/material.dart';
+import 'package:sasheco_dashboard_web/features/site/presentation/cubit/site_cubit.dart';
+import 'package:sasheco_dashboard_web/features/contracts/presentation/screens/contracts_screen.dart';
+import 'package:sasheco_dashboard_web/features/contracts/presentation/cubit/contracts_cubit.dart';
 
 GoRouter createAppRouter(AuthCubit authCubit) {
   return GoRouter(
@@ -38,7 +48,7 @@ GoRouter createAppRouter(AuthCubit authCubit) {
     routes: [
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginScreen(),
+        builder: (context, state) => LoginScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) {
@@ -47,7 +57,21 @@ GoRouter createAppRouter(AuthCubit authCubit) {
         routes: [
           GoRoute(
             path: '/dashboard',
-            builder: (context, state) => const DashboardScreen(),
+            builder: (context, state) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.read<DashboardCubit>().loadDashboardMetrics();
+              });
+              return const DashboardScreen();
+            },
+          ),
+          GoRoute(
+            path: '/contracts',
+            builder: (context, state) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.read<ContractsCubit>().loadContracts();
+              });
+              return const ContractsScreen();
+            },
           ),
           GoRoute(
             path: '/create-user',
@@ -63,7 +87,12 @@ GoRouter createAppRouter(AuthCubit authCubit) {
           ),
           GoRoute(
             path: '/engineering',
-            builder: (context, state) => const EngineeringDashboardScreen(),
+            builder: (context, state) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.read<EngineeringCubit>().fetchProjects();
+              });
+              return const EngineeringDashboardScreen();
+            },
             routes: [
               GoRoute(
                 path: 'create',
@@ -73,11 +102,22 @@ GoRouter createAppRouter(AuthCubit authCubit) {
           ),
           GoRoute(
             path: '/secretary',
-            builder: (context, state) => const SecretaryDashboardScreen(),
+            builder: (context, state) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.read<SecretaryCubit>().fetchInbox();
+                context.read<SecretaryCubit>().fetchTasks();
+              });
+              return const SecretaryDashboardScreen();
+            },
           ),
           GoRoute(
             path: '/financial',
-            builder: (context, state) => const FinancialDashboardScreen(),
+            builder: (context, state) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.read<FinanceCubit>().fetchDashboardData();
+              });
+              return const FinancialDashboardScreen();
+            },
           ),
           GoRoute(
             path: '/approval',
@@ -85,11 +125,21 @@ GoRouter createAppRouter(AuthCubit authCubit) {
           ),
           GoRoute(
             path: '/vendor',
-            builder: (context, state) => const VendorDashboardScreen(),
+            builder: (context, state) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.read<VendorCubit>().getVendors();
+              });
+              return const VendorDashboardScreen();
+            },
           ),
           GoRoute(
             path: '/site',
-            builder: (context, state) => const SiteDashboardScreen(),
+            builder: (context, state) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.read<SiteCubit>().fetchSiteDashboard();
+              });
+              return const SiteDashboardScreen();
+            },
             routes: [
               GoRoute(
                 path: 'mapping',

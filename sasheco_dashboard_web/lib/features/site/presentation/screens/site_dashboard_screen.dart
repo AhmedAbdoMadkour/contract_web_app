@@ -8,21 +8,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sasheco_dashboard_web/features/site/presentation/cubit/site_cubit.dart';
 import 'package:sasheco_dashboard_web/features/site/presentation/cubit/site_state.dart';
 import 'package:go_router/go_router.dart';
-class SiteDashboardScreen extends StatefulWidget {
+class SiteDashboardScreen extends StatelessWidget {
   const SiteDashboardScreen({super.key});
-
-  @override
-  State<SiteDashboardScreen> createState() => _SiteDashboardScreenState();
-}
-
-class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SiteCubit>().fetchSiteDashboard();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +45,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
               children: [
                 _buildHeader(context, siteName),
                 const SizedBox(height: 24),
-                _buildHeaderCard(context),
+                _buildHeaderCard(context, state),
                 const SizedBox(height: 24),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,7 +60,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
                                 child: _buildMetricCard(
                                   context: context,
                                   title: 'Total Contracts',
-                                  value: '14',
+                                  value: state is SiteLoaded ? state.site.totalContracts.toString() : '...',
                                   icon: Icons.description_outlined,
                                 ),
                               ),
@@ -82,7 +69,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
                                 child: _buildMetricCard(
                                   context: context,
                                   title: 'Total Addenda',
-                                  value: '6',
+                                  value: state is SiteLoaded ? state.site.totalAddenda.toString() : '...',
                                   icon: Icons.note_add_outlined,
                                 ),
                               ),
@@ -145,7 +132,15 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
     );
   }
 
-  Widget _buildHeaderCard(BuildContext context) {
+  Widget _buildHeaderCard(BuildContext context, SiteState state) {
+    String pName = 'greenValleyInfrastructure'.tr();
+    String pCode = 'prj2024089'.tr();
+
+    if (state is SiteLoaded) {
+      pName = state.site.projectNameEn;
+      pCode = state.site.projectCode;
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24.0),
@@ -168,7 +163,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
             children: [
               Row(
                 children: [
-                  Text('greenValleyInfrastructure'.tr(),
+                  Text(pName,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
@@ -182,7 +177,7 @@ class _SiteDashboardScreenState extends State<SiteDashboardScreen> {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.grey.shade300),
                     ),
-                    child: Text('prj2024089'.tr(),
+                    child: Text(pCode,
                       style: TextStyle(
                         color: Colors.grey.shade800,
                         fontSize: 12,

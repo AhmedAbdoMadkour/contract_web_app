@@ -12,21 +12,9 @@ import 'package:sasheco_dashboard_web/features/engineering/presentation/cubit/en
 import 'package:sasheco_dashboard_web/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:sasheco_dashboard_web/features/engineering/data/model/contract_model.dart';
 
-class EngineeringDashboardScreen extends StatefulWidget {
+class EngineeringDashboardScreen extends StatelessWidget {
   const EngineeringDashboardScreen({super.key});
 
-  @override
-  State<EngineeringDashboardScreen> createState() => _EngineeringDashboardScreenState();
-}
-
-class _EngineeringDashboardScreenState extends State<EngineeringDashboardScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<EngineeringCubit>().fetchProjects();
-    });
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,7 +80,7 @@ class _EngineeringDashboardScreenState extends State<EngineeringDashboardScreen>
               ],
             ),
             const SizedBox(height: 24),
-            _PricingAndQuantitiesCard(),
+            _PricingAndQuantitiesCard(contracts: contracts),
             const SizedBox(height: 24),
             _ProjectDrawingsCard(),
             const SizedBox(height: 48),
@@ -364,8 +352,19 @@ class _TermsAndConditionsCard extends StatelessWidget {
 }
 
 class _PricingAndQuantitiesCard extends StatelessWidget {
+  final List<ContractModel> contracts;
+
+  const _PricingAndQuantitiesCard({required this.contracts});
+
   @override
   Widget build(BuildContext context) {
+    double totalAmount = 0.0;
+    for (var contract in contracts) {
+      for (var item in contract.items) {
+        totalAmount += (item.price * item.quantity);
+      }
+    }
+
     return _BaseCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,7 +379,7 @@ class _PricingAndQuantitiesCard extends StatelessWidget {
                     ),
               ),
               Text(
-                'Total: \$1,450,000.00',
+                'Total: \$${totalAmount.toStringAsFixed(2)}',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
@@ -389,23 +388,36 @@ class _PricingAndQuantitiesCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: DataTable(
-              headingRowColor: const WidgetStatePropertyAll(AppColors.background),
-              columns: [
-                DataColumn(label: Text('itemId'.tr())),
-                DataColumn(label: Text('description'.tr())),
-                DataColumn(label: Text('qty'.tr())),
-                DataColumn(label: Text('unitPrice'.tr())),
-                DataColumn(label: Text('total'.tr())),
-              ],
-              rows: [
-                _buildPricingRow('ITM-001', 'Foundation Concrete', '500', '1200.00', '\$600,000.00'),
-                _buildPricingRow('ITM-002', 'Steel Reinforcement', '250', '3400.00', '\$850,000.00'),
-              ],
+          if (contracts.isEmpty)
+             const Padding(
+               padding: EdgeInsets.all(16.0),
+               child: Center(child: Text("No pricing data available.")),
+             )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: DataTable(
+                headingRowColor: const WidgetStatePropertyAll(AppColors.background),
+                columns: [
+                  DataColumn(label: Text('itemId'.tr())),
+                  DataColumn(label: Text('description'.tr())),
+                  DataColumn(label: Text('qty'.tr())),
+                  DataColumn(label: Text('unitPrice'.tr())),
+                  DataColumn(label: Text('total'.tr())),
+                ],
+                rows: contracts.expand((contract) {
+                  return contract.items.map((item) {
+                    return _buildPricingRow(
+                      item.id,
+                      item.description,
+                      item.quantity.toString(),
+                      item.price.toStringAsFixed(2),
+                      '\$${(item.price * item.quantity).toStringAsFixed(2)}',
+                    );
+                  });
+                }).toList(),
+              ),
             ),
-          ),
         ],
       ),
     );

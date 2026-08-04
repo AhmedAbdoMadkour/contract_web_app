@@ -30,6 +30,8 @@ import 'package:sasheco_dashboard_web/features/secretary/presentation/cubit/secr
 import 'package:sasheco_dashboard_web/features/secretary/data/repository/secretary_repository.dart';
 import 'package:sasheco_dashboard_web/features/approval/presentation/cubit/approval_cubit.dart';
 import 'package:sasheco_dashboard_web/features/approval/data/repository/approval_repository.dart';
+import 'package:sasheco_dashboard_web/features/contracts/presentation/cubit/contracts_cubit.dart';
+import 'package:sasheco_dashboard_web/features/contracts/data/repository/contracts_repository.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
@@ -147,6 +149,11 @@ class _MyAppState extends State<MyApp> {
         BlocProvider(
           create: (context) => ApprovalCubit(
             ApprovalRepository(networkService),
+          ),
+        ),
+        BlocProvider(
+          create: (context) => ContractsCubit(
+            ContractsRepository(networkService),
           ),
         ),
       ],

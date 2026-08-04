@@ -1,6 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Sasheco.Application.Features.Finance;
+using Sasheco.Infrastructure.Data;
 
 namespace Sasheco.Api.Controllers;
 
@@ -9,10 +11,12 @@ namespace Sasheco.Api.Controllers;
 public class FinanceController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly SashecoDbContext _context;
 
-    public FinanceController(IMediator mediator)
+    public FinanceController(IMediator mediator, SashecoDbContext context)
     {
         _mediator = mediator;
+        _context = context;
     }
 
     [HttpPost("pay")]
@@ -23,25 +27,41 @@ public class FinanceController : ControllerBase
     }
 
     [HttpGet("report")]
-    public IActionResult GetReport()
+    public async Task<IActionResult> GetReport(CancellationToken cancellationToken)
     {
+        var income = await _context.FinanceTransactions
+            .Where(t => t.Type == "Income")
+            .SumAsync(t => t.Amount, cancellationToken);
+            
+        var expenses = await _context.FinanceTransactions
+            .Where(t => t.Type == "Expense")
+            .SumAsync(t => t.Amount, cancellationToken);
+
         return Ok(new
         {
-            totalRevenue = 2500000.00,
-            totalExpenses = 1500000.00,
-            netIncome = 1000000.00,
+            totalRevenue = income,
+            totalExpenses = expenses,
+            netIncome = income - expenses,
             currency = "USD",
             reportDate = DateTime.UtcNow
         });
     }
 
     [HttpGet("transactions")]
-    public IActionResult GetTransactions()
+    public async Task<IActionResult> GetTransactions(CancellationToken cancellationToken)
     {
-        return Ok(new[]
-        {
-            new { id = "TXN-001", description = "Advance Payment", amount = 250000.00, date = DateTime.UtcNow.AddDays(-10), type = "Income" },
-            new { id = "TXN-002", description = "Material Purchase", amount = -50000.00, date = DateTime.UtcNow.AddDays(-5), type = "Expense" }
-        });
+        var transactions = await _context.FinanceTransactions
+            .OrderByDescending(t => t.Date)
+            .Take(50)
+            .Select(t => new {
+                id = t.Id.ToString(),
+                description = t.Description,
+                amount = t.Amount,
+                date = t.Date,
+                type = t.Type
+            })
+            .ToListAsync(cancellationToken);
+
+        return Ok(transactions);
     }
 }

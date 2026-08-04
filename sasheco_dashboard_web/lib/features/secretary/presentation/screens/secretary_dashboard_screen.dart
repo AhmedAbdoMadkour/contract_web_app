@@ -5,15 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/secretary_cubit.dart';
 import '../cubit/secretary_state.dart';
 
-class SecretaryDashboardScreen extends StatefulWidget {
+class SecretaryDashboardScreen extends StatelessWidget {
   const SecretaryDashboardScreen({super.key});
 
-  @override
-  State<SecretaryDashboardScreen> createState() => _SecretaryDashboardScreenState();
-}
-
-class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
-  Future<void> _pickAndUploadFile() async {
+  Future<void> _pickAndUploadFile(BuildContext context) async {
     FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'doc', 'docx'],
@@ -23,7 +18,7 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
     if (result != null) {
       final bytes = result.files.single.bytes;
       final fileName = result.files.single.name;
-      if (bytes != null && mounted) {
+      if (bytes != null && context.mounted) {
         context.read<SecretaryCubit>().uploadDocument(bytes, fileName);
       }
     }
@@ -195,7 +190,7 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
             children: [
               Text('Reference Documents', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary)),
               TextButton.icon(
-                onPressed: _pickAndUploadFile,
+                onPressed: () => _pickAndUploadFile(context),
                 icon: const Icon(Icons.add),
                 label: const Text('Add Reference'),
               ),

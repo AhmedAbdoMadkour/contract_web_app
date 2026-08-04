@@ -99,7 +99,7 @@ class FinanceDashboardScreen extends StatelessWidget {
                           amount: 250000,
                           date: DateTime.now(),
                           description: 'Initial Deposit Payment',
-                          status: 'Processing',
+                          type: 'Income',
                         ),
                       );
                     },
@@ -230,14 +230,14 @@ class FinanceDashboardScreen extends StatelessWidget {
                         const SizedBox(height: 24),
                         _buildTermRow(
                           icon: Icons.warning_rounded,
-                          iconColor: AppColors.error,
+                          iconColor: Colors.red,
                           title: 'Late Payment Penalties',
                           description: '2% per month on outstanding balances after 30 days of invoice date.',
                         ),
                         const SizedBox(height: 24),
                         _buildTermRow(
                           icon: Icons.calendar_month,
-                          iconColor: AppColors.info,
+                          iconColor: Colors.blue,
                           title: 'Payment Windows',
                           description: 'Invoices to be paid within 15 net days upon milestone approval.',
                         ),

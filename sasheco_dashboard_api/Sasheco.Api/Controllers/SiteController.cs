@@ -61,18 +61,44 @@ public class SiteController : ControllerBase
     }
 
     [HttpGet("dashboard")]
-    public IActionResult GetDashboard()
+    public async Task<IActionResult> GetDashboard(CancellationToken cancellationToken)
     {
-        // Mock dashboard data for UI flow
+        var project = await _context.Projects
+            .Include(p => p.Contracts)
+                .ThenInclude(c => c.Items)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (project == null)
+        {
+            return Ok(new
+            {
+                projectCode = "N/A",
+                projectNameEn = "No Projects",
+                projectNameAr = "لا يوجد مشاريع",
+                totalContracts = 0,
+                totalAddenda = 0,
+                activeValue = "$0",
+                contracts = new object[] {}
+            });
+        }
+
+        var totalContracts = project.Contracts.Count;
+        var activeValue = project.Contracts.SelectMany(c => c.Items).Sum(i => i.Price * i.Quantity);
+
         return Ok(new
         {
-            projectCode = "PRJ-2024-089",
-            projectNameEn = "Alpha Terminal Site",
-            projectNameAr = "موقع ألفا",
-            totalContracts = 14,
-            totalAddenda = 6,
-            activeValue = "$2,500,000",
-            contracts = new object[] {}
+            projectCode = project.ProjectCode,
+            projectNameEn = project.NameEn,
+            projectNameAr = project.NameAr,
+            totalContracts = totalContracts,
+            totalAddenda = 0, // Mock for now if Addenda is not in the schema
+            activeValue = $"${activeValue:N2}",
+            contracts = project.Contracts.Select(c => new 
+            { 
+                id = c.Id,
+                status = c.Status,
+                totalAmount = c.Items.Sum(i => i.Price * i.Quantity)
+            })
         });
     }
 

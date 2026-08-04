@@ -9,21 +9,8 @@ import 'package:sasheco_dashboard_web/features/finance/data/model/finance_report
 import 'package:sasheco_dashboard_web/features/finance/data/model/transaction_model.dart';
 import 'package:intl/intl.dart';
 
-class FinancialDashboardScreen extends StatefulWidget {
+class FinancialDashboardScreen extends StatelessWidget {
   const FinancialDashboardScreen({super.key});
-
-  @override
-  State<FinancialDashboardScreen> createState() => _FinancialDashboardScreenState();
-}
-
-class _FinancialDashboardScreenState extends State<FinancialDashboardScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<FinanceCubit>().fetchDashboardData();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
