@@ -25,6 +25,7 @@ import 'package:sasheco_dashboard_web/features/vendor/presentation/cubit/vendor_
 import 'package:flutter/material.dart';
 import 'package:sasheco_dashboard_web/features/site/presentation/cubit/site_cubit.dart';
 import 'package:sasheco_dashboard_web/features/contracts/presentation/screens/contracts_screen.dart';
+import 'package:sasheco_dashboard_web/features/contracts/presentation/screens/contract_details_screen.dart';
 import 'package:sasheco_dashboard_web/features/contracts/presentation/cubit/contracts_cubit.dart';
 
 GoRouter createAppRouter(AuthCubit authCubit) {
@@ -72,6 +73,15 @@ GoRouter createAppRouter(AuthCubit authCubit) {
               });
               return const ContractsScreen();
             },
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return ContractDetailsScreen(contractId: id);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/create-user',

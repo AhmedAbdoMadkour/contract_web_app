@@ -209,22 +209,6 @@ class SiteDashboardScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 ),
               ),
-              const SizedBox(width: 16),
-              ElevatedButton.icon(
-                onPressed: () {
-                  context.push('/site/mapping');
-                },
-                icon: const Icon(Icons.settings),
-                label: Text('manageSite'.tr()),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F172A), // Dark navy
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
             ],
           ),
         ],

@@ -57,4 +57,27 @@ public class AuthController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpPost("change-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var user = await _userRepository.GetByEmailAsync(request.Email);
+
+        if (user == null)
+        {
+            return BadRequest(new { message = "Invalid email or current password" });
+        }
+
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+        {
+            return BadRequest(new { message = "Invalid email or current password" });
+        }
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        
+        await _userRepository.UpdateAsync(user);
+
+        return Ok(new { message = "Password changed successfully" });
+    }
 }
