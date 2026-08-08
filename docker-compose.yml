@@ -12,7 +12,7 @@ services:
 
   api:
     build:
-      context: ./sasheco_dashboard_api
+      context: ./backend_services/contracts_api
       dockerfile: Dockerfile
     container_name: sasheco_api
     depends_on:
@@ -26,7 +26,7 @@ services:
 
   web:
     build:
-      context: ./sasheco_dashboard_web
+      context: ./frontend/contract_module/contract_frontend
       dockerfile: Dockerfile
     container_name: sasheco_web
     depends_on:
