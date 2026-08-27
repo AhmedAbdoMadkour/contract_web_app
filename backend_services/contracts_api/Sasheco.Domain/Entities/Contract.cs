@@ -3,6 +3,9 @@ namespace Sasheco.Domain.Entities;
 public enum ContractStatus
 {
     Draft,
+    PendingSecretary,
+    PendingFinancial,
+    PendingApproval,
     Active,
     Completed,
     Terminated
@@ -19,6 +22,7 @@ public class Contract
     
     public ContractStatus Status { get; set; }
     public string TermsAndConditions { get; set; } = string.Empty;
+    public string PaymentTerms { get; set; } = string.Empty;
 
     public ICollection<ContractItem> Items { get; set; } = new List<ContractItem>();
     public ICollection<ContractTerm> Terms { get; set; } = new List<ContractTerm>();

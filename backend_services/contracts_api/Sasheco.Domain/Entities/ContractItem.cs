@@ -8,6 +8,8 @@ public class ContractItem
 
     public decimal Price { get; set; }
     public int Quantity { get; set; }
-    public string DescriptionEn { get; set; } = string.Empty;
-    public string DescriptionAr { get; set; } = string.Empty;
+    public string ItemCode { get; set; } = string.Empty;
+    public string ItemName { get; set; } = string.Empty;
+
+    public decimal Total => Quantity * Price;
 }

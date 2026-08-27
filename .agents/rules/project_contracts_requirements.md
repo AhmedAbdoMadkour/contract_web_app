@@ -15,7 +15,7 @@ This rule provides the core business logic and requirements for the Sasheco Cont
 - **Contract:** Follows a strict 4-stage workflow. Contains First Party (Sasheco) and Second Party (Vendor) details.
 
 ## 2. Contract Workflow (The 4 Stages)
-1. **Engineering (Stage 1):** Engineers input the BOQ (Bill of Quantities/Items), prices, drawings, and payment terms.
+1. **Engineering (Stage 1):** Engineers input the BOQ (Bill of Quantities) items manually or via Excel upload (Columns: Item Code, Item Name, Quantity, Item Price). The total per item is automatically calculated. They also upload drawings and specify payment terms. Finally, they can "Save" the data or explicitly "Submit Contract" to lock Stage 1 and advance the contract to Stage 2.
 2. **Secretary (Stage 2):** The secretary selects a Contract Template, links the Engineering data (BOQ, payment terms) to it, and finalizes the Preamble, Legal Conditions, and Clauses.
 3. **Financial (Stage 3):** The financial department reviews the complete contract.
 4. **Approval (Stage 4):** High-level management gives final approval.

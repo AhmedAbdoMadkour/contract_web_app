@@ -1,0 +1,16 @@
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\bin\Debug\net10.0\Sasheco.Contract.Application.deps.json
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\bin\Debug\net10.0\Sasheco.Contract.Application.dll
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\bin\Debug\net10.0\Sasheco.Contract.Application.pdb
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\bin\Debug\net10.0\Sasheco.Contract.Domain.dll
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\bin\Debug\net10.0\Sasheco.Contract.Domain.pdb
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\obj\Debug\net10.0\Sasheco.Contract.Application.csproj.AssemblyReference.cache
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\obj\Debug\net10.0\Sasheco.Contract.Application.GeneratedMSBuildEditorConfig.editorconfig
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\obj\Debug\net10.0\Sasheco.Contract.Application.AssemblyInfoInputs.cache
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\obj\Debug\net10.0\Sasheco.Contract.Application.AssemblyInfo.cs
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\obj\Debug\net10.0\Sasheco.Contract.Application.csproj.CoreCompileInputs.cache
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\obj\Debug\net10.0\Sasheco.Contract.Application.sourcelink.json
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\obj\Debug\net10.0\Sasheco..6D75D6AA.Up2Date
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\obj\Debug\net10.0\Sasheco.Contract.Application.dll
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\obj\Debug\net10.0\refint\Sasheco.Contract.Application.dll
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\obj\Debug\net10.0\Sasheco.Contract.Application.pdb
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Application\obj\Debug\net10.0\ref\Sasheco.Contract.Application.dll

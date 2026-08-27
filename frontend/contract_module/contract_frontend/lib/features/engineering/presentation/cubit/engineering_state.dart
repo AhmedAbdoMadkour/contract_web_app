@@ -60,6 +60,15 @@ class EngineeringStatusUpdated extends EngineeringState {
   List<Object?> get props => [id, status];
 }
 
+class EngineeringContractSubmitted extends EngineeringState {
+  final String contractId;
+
+  const EngineeringContractSubmitted(this.contractId);
+
+  @override
+  List<Object?> get props => [contractId];
+}
+
 class EngineeringContractsLoaded extends EngineeringState {
   final List<ContractModel> contracts;
   final List<EngineeringProjectModel> projects;

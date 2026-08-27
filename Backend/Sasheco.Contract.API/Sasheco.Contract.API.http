@@ -1,0 +1,6 @@
+@Sasheco.Contract.API_HostAddress = http://localhost:5063
+
+GET {{Sasheco.Contract.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

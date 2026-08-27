@@ -143,4 +143,18 @@ class EngineeringRepository {
       return Left(ErrorHandler.handleException(e));
     }
   }
+
+  Future<Either<Failure, void>> submitContract(String contractId, String paymentTerms) async {
+    try {
+      await _networkService.put(
+        '/api/Engineering/$contractId/submit',
+        data: {
+          'paymentTerms': paymentTerms,
+        },
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(ErrorHandler.handleException(e));
+    }
+  }
 }

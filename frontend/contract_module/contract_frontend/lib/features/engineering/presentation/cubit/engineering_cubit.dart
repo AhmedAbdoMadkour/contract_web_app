@@ -147,4 +147,22 @@ class EngineeringCubit extends Cubit<EngineeringState> {
       },
     );
   }
+
+  Future<void> submitContract(String contractId, String paymentTerms) async {
+    emit(EngineeringLoading());
+    final result = await _repository.submitContract(contractId, paymentTerms);
+    result.fold(
+      (failure) => emit(EngineeringError(failure.message)),
+      (_) {
+        emit(EngineeringContractSubmitted(contractId));
+        // Refetch to update UI if needed
+        if (state is EngineeringContractsLoaded) {
+          final s = state as EngineeringContractsLoaded;
+          if (s.projects.isNotEmpty) {
+            fetchProjectContracts(s.projects.first.id);
+          }
+        }
+      },
+    );
+  }
 }

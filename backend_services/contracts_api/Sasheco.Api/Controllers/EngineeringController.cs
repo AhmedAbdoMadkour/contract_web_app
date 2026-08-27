@@ -5,6 +5,7 @@ using Sasheco.Application.Engineering.DTOs;
 using Sasheco.Domain.Entities;
 using Sasheco.Infrastructure.Data;
 using FluentValidation;
+using ClosedXML.Excel;
 
 namespace Sasheco.Api.Controllers;
 
@@ -92,7 +93,8 @@ public class EngineeringController : ControllerBase
                 Items = c.Items.Select(i => new
                 {
                     Id = i.Id,
-                    Description = _localeProvider.IsArabic ? i.DescriptionAr : i.DescriptionEn,
+                    ItemCode = i.ItemCode,
+                    ItemName = i.ItemName,
                     Quantity = i.Quantity,
                     Price = i.Price
                 }),
@@ -160,4 +162,70 @@ public class EngineeringController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpPost("{contractId:guid}/items/bulk")]
+    [Authorize(Roles = "Admin,Engineering,ProjectManager")]
+    public async Task<IActionResult> AddItemsBulkAsync(Guid contractId, IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file == null || file.Length == 0) return BadRequest("File is required.");
+        
+        var contract = await _context.Contracts.FindAsync(new object[] { contractId }, cancellationToken);
+        if (contract == null) return NotFound("Contract not found.");
+
+        using var stream = file.OpenReadStream();
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheets.FirstOrDefault();
+        if (worksheet == null) return BadRequest("No worksheet found.");
+
+        var rows = worksheet.RowsUsed().Skip(1); // skip header
+        var items = new List<ContractItem>();
+
+        foreach (var row in rows)
+        {
+            var itemCode = row.Cell(1).GetString();
+            var itemName = row.Cell(2).GetString();
+            var quantityStr = row.Cell(3).GetString();
+            var priceStr = row.Cell(4).GetString();
+
+            if (string.IsNullOrWhiteSpace(itemName)) continue;
+
+            if (int.TryParse(quantityStr, out int quantity) && decimal.TryParse(priceStr, out decimal price))
+            {
+                items.Add(new ContractItem
+                {
+                    Id = Guid.NewGuid(),
+                    ContractId = contractId,
+                    ItemCode = itemCode,
+                    ItemName = itemName,
+                    Quantity = quantity,
+                    Price = price
+                });
+            }
+        }
+
+        if (items.Any())
+        {
+            await _context.ContractItems.AddRangeAsync(items, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        return Ok(new { message = $"Added {items.Count} items." });
+    }
+
+    [HttpPut("{contractId:guid}/submit")]
+    [Authorize(Roles = "Admin,Engineering,ProjectManager")]
+    public async Task<IActionResult> SubmitContract(Guid contractId, [FromBody] SubmitContractRequest request, CancellationToken cancellationToken)
+    {
+        var contract = await _context.Contracts.FindAsync(new object[] { contractId }, cancellationToken);
+        if (contract == null) return NotFound("Contract not found.");
+
+        contract.PaymentTerms = request.PaymentTerms ?? string.Empty;
+        contract.Status = ContractStatus.PendingSecretary;
+        
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
+    }
 }
+
+public record SubmitContractRequest(string PaymentTerms);

@@ -15,8 +15,21 @@ import 'package:sasheco_dashboard_web/features/auth/presentation/cubit/auth_cubi
 import 'package:sasheco_dashboard_web/features/engineering/data/model/contract_model.dart';
 import 'package:sasheco_dashboard_web/features/engineering/presentation/screens/create_contract_item_dialog.dart';
 
-class EngineeringDashboardScreen extends StatelessWidget {
+class EngineeringDashboardScreen extends StatefulWidget {
   const EngineeringDashboardScreen({super.key});
+
+  @override
+  State<EngineeringDashboardScreen> createState() => _EngineeringDashboardScreenState();
+}
+
+class _EngineeringDashboardScreenState extends State<EngineeringDashboardScreen> {
+  final TextEditingController _paymentTermsController = TextEditingController();
+
+  @override
+  void dispose() {
+    _paymentTermsController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +101,68 @@ class EngineeringDashboardScreen extends StatelessWidget {
             _PricingAndQuantitiesCard(contracts: contracts),
             const SizedBox(height: 24),
             _ProjectDrawingsCard(contracts: contracts, isDragging: isDragging),
+            const SizedBox(height: 24),
+            _BaseCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Payment Terms',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _paymentTermsController,
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter payment terms here...',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton(
+                  onPressed: () {
+                    // Just a save stub, backend handles items upload individually
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Progress saved locally.')),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  ),
+                  child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    if (contracts.isNotEmpty) {
+                      context.read<EngineeringCubit>().submitContract(
+                        contracts.first.id,
+                        _paymentTermsController.text,
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('No contract found to submit.')),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  ),
+                  child: const Text('Submit Contract', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
             const SizedBox(height: 48),
               ],
             ),
@@ -318,11 +393,11 @@ class _ContractItemsCard extends StatelessWidget {
                   child: DataTable(
                     headingRowColor: WidgetStatePropertyAll(AppColors.background.withOpacity(0.5)),
                     columns: [
-                      DataColumn(label: Text('itemId'.tr())),
-                      DataColumn(label: Text('description'.tr())),
-                      DataColumn(label: Text('quantity'.tr())),
-                      DataColumn(label: Text('price'.tr())),
-                      DataColumn(label: Text('vendor'.tr())),
+                      DataColumn(label: Text('Item Code')),
+                      DataColumn(label: Text('Item Name')),
+                      DataColumn(label: Text('Quantity')),
+                      DataColumn(label: Text('Item Price')),
+                      DataColumn(label: Text('Total')),
                       if (canEdit) DataColumn(label: Text('actions'.tr())),
                     ],
                     rows: contracts.expand((contract) {
@@ -342,11 +417,11 @@ class _ContractItemsCard extends StatelessWidget {
   DataRow _buildItemRow(ContractItemModel item, ContractModel contract, bool canEdit) {
     return DataRow(
       cells: [
-        DataCell(Text(item.id, style: const TextStyle(fontWeight: FontWeight.w500))),
-        DataCell(Text(item.description)),
+        DataCell(Text(item.itemCode, style: const TextStyle(fontWeight: FontWeight.w500))),
+        DataCell(Text(item.itemName)),
         DataCell(Text(item.quantity.toString())),
         DataCell(Text('\$${item.price.toStringAsFixed(2)}')),
-        DataCell(Text(contract.vendorName)),
+        DataCell(Text('\$${item.total.toStringAsFixed(2)}')),
         if (canEdit)
           DataCell(
             IconButton(
@@ -532,8 +607,8 @@ class _PricingAndQuantitiesCardState extends State<_PricingAndQuantitiesCard> {
               child: DataTable(
                 headingRowColor: const WidgetStatePropertyAll(AppColors.background),
                 columns: [
-                  DataColumn(label: Text('itemId'.tr())),
-                  DataColumn(label: Text('description'.tr())),
+                  DataColumn(label: Text('Item Code')),
+                  DataColumn(label: Text('Item Name')),
                   DataColumn(label: Text('qty'.tr())),
                   DataColumn(label: Text('unitPrice'.tr())),
                   DataColumn(label: Text('total'.tr())),
@@ -547,8 +622,8 @@ class _PricingAndQuantitiesCardState extends State<_PricingAndQuantitiesCard> {
                     final total = qty * price;
                     
                     return _buildPricingRow(
-                      item.id,
-                      item.description,
+                      item.itemCode,
+                      item.itemName,
                       qtyCtrl,
                       priceCtrl,
                       '\$${total.toStringAsFixed(2)}',
@@ -562,11 +637,11 @@ class _PricingAndQuantitiesCardState extends State<_PricingAndQuantitiesCard> {
     );
   }
 
-  DataRow _buildPricingRow(String id, String desc, TextEditingController? qtyCtrl, TextEditingController? priceCtrl, String total) {
+  DataRow _buildPricingRow(String itemCode, String itemName, TextEditingController? qtyCtrl, TextEditingController? priceCtrl, String total) {
     return DataRow(
       cells: [
-        DataCell(Text(id, style: const TextStyle(fontWeight: FontWeight.w500))),
-        DataCell(Text(desc)),
+        DataCell(Text(itemCode, style: const TextStyle(fontWeight: FontWeight.w500))),
+        DataCell(Text(itemName)),
         DataCell(
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),

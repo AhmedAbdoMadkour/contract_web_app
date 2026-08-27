@@ -8,8 +8,8 @@ using Sasheco.Infrastructure.Data;
 
 namespace Sasheco.Api.Controllers;
 
-public record AddContractItemRequest(decimal Price, int Quantity, string DescriptionEn, string DescriptionAr);
-public record UpdateContractItemRequest(decimal Price, int Quantity, string DescriptionEn, string DescriptionAr);
+public record AddContractItemRequest(decimal Price, int Quantity, string ItemCode, string ItemName);
+public record UpdateContractItemRequest(decimal Price, int Quantity, string ItemCode, string ItemName);
 public record AddContractTermRequest(string Title, string Content);
 public record UpdateContractTermRequest(string Title, string Content);
 public record UpdateContractTermsRequest(string TermsAndConditions);
@@ -94,8 +94,8 @@ public class ContractsController : ControllerBase
             ContractId = id,
             Price = request.Price,
             Quantity = request.Quantity,
-            DescriptionEn = request.DescriptionEn,
-            DescriptionAr = request.DescriptionAr
+            ItemCode = request.ItemCode,
+            ItemName = request.ItemName
         };
 
         await _contractItemRepository.AddAsync(item);
@@ -111,8 +111,8 @@ public class ContractsController : ControllerBase
 
         item.Price = request.Price;
         item.Quantity = request.Quantity;
-        item.DescriptionEn = request.DescriptionEn;
-        item.DescriptionAr = request.DescriptionAr;
+        item.ItemCode = request.ItemCode;
+        item.ItemName = request.ItemName;
 
         await _contractItemRepository.UpdateAsync(item);
         return NoContent();

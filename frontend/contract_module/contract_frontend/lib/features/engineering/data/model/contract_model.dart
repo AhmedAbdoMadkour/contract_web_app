@@ -56,32 +56,40 @@ class DrawingAttachmentModel {
 
 class ContractItemModel {
   final String id;
-  final String description;
+  final String itemCode;
+  final String itemName;
   final double quantity;
   final double price;
+  final double total;
 
   ContractItemModel({
     required this.id,
-    required this.description,
+    required this.itemCode,
+    required this.itemName,
     required this.quantity,
     required this.price,
+    required this.total,
   });
 
   factory ContractItemModel.fromJson(Map<String, dynamic> json) {
     return ContractItemModel(
       id: json['id']?.toString() ?? '',
-      description: json['description']?.toString() ?? '',
+      itemCode: json['itemCode']?.toString() ?? '',
+      itemName: json['itemName']?.toString() ?? '',
       quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      total: (json['total'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'description': description,
+      'itemCode': itemCode,
+      'itemName': itemName,
       'quantity': quantity,
       'price': price,
+      'total': total,
     };
   }
 }

@@ -1,0 +1,12 @@
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Domain\bin\Debug\net10.0\Sasheco.Contract.Domain.deps.json
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Domain\bin\Debug\net10.0\Sasheco.Contract.Domain.dll
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Domain\bin\Debug\net10.0\Sasheco.Contract.Domain.pdb
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Domain\obj\Debug\net10.0\Sasheco.Contract.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Domain\obj\Debug\net10.0\Sasheco.Contract.Domain.AssemblyInfoInputs.cache
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Domain\obj\Debug\net10.0\Sasheco.Contract.Domain.AssemblyInfo.cs
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Domain\obj\Debug\net10.0\Sasheco.Contract.Domain.csproj.CoreCompileInputs.cache
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Domain\obj\Debug\net10.0\Sasheco.Contract.Domain.sourcelink.json
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Domain\obj\Debug\net10.0\Sasheco.Contract.Domain.dll
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Domain\obj\Debug\net10.0\refint\Sasheco.Contract.Domain.dll
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Domain\obj\Debug\net10.0\Sasheco.Contract.Domain.pdb
+D:\programming\projects\sasheco-v1\Backend\Sasheco.Contract.Domain\obj\Debug\net10.0\ref\Sasheco.Contract.Domain.dll

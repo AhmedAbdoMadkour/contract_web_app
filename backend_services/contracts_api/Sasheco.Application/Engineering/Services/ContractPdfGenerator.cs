@@ -93,7 +93,7 @@ public class ContractPdfGenerator : IContractPdfGenerator
 
             table.Header(header =>
             {
-                header.Cell().Element(CellStyle).Text("Description");
+                header.Cell().Element(CellStyle).Text("Item Name");
                 header.Cell().Element(CellStyle).AlignRight().Text("Qty");
                 header.Cell().Element(CellStyle).AlignRight().Text("Unit Price");
                 header.Cell().Element(CellStyle).AlignRight().Text("Total");
@@ -106,7 +106,7 @@ public class ContractPdfGenerator : IContractPdfGenerator
 
             foreach (var item in items)
             {
-                table.Cell().Element(CellStyle).Text(item.DescriptionEn);
+                table.Cell().Element(CellStyle).Text(item.ItemName);
                 table.Cell().Element(CellStyle).AlignRight().Text(item.Quantity.ToString());
                 table.Cell().Element(CellStyle).AlignRight().Text($"${item.Price:N2}");
                 table.Cell().Element(CellStyle).AlignRight().Text($"${(item.Price * item.Quantity):N2}");

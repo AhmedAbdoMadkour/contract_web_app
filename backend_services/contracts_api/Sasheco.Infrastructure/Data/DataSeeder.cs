@@ -83,8 +83,8 @@ public static class DataSeeder
             {
                 Id = Guid.NewGuid(),
                 ContractId = contract.Id,
-                DescriptionEn = "Concrete Foundation Work",
-                DescriptionAr = "أعمال الأساس الخرساني",
+                ItemCode = "C-FW-01",
+                ItemName = "Concrete Foundation Work",
                 Quantity = 50,
                 Price = 1200.00m
             };
@@ -93,8 +93,8 @@ public static class DataSeeder
             {
                 Id = Guid.NewGuid(),
                 ContractId = contract.Id,
-                DescriptionEn = "Steel Frame Structure",
-                DescriptionAr = "هيكل الإطار الفولاذي",
+                ItemCode = "S-FS-01",
+                ItemName = "Steel Frame Structure",
                 Quantity = 15,
                 Price = 8500.00m
             };

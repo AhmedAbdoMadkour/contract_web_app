@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "Sasheco.Contract.Domain/1.0.0": {
+        "runtime": {
+          "Sasheco.Contract.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Sasheco.Contract.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
