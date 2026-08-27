@@ -5,24 +5,26 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/site_cubit.dart';
 import '../cubit/site_state.dart';
 import 'package:sasheco_dashboard_web/core/widgets/module_exit_button.dart';
-class SiteMappingScreen extends StatefulWidget {
+class SiteMappingFormCubit extends Cubit<Map<String, String>> {
+  SiteMappingFormCubit() : super({});
+  void updateField(String key, String value) => emit({...state, key: value});
+}
+
+class SiteMappingScreen extends StatelessWidget {
   const SiteMappingScreen({super.key});
 
   @override
-  State<SiteMappingScreen> createState() => _SiteMappingScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => SiteMappingFormCubit(),
+      child: const _SiteMappingContent(),
+    );
+  }
 }
 
-class _SiteMappingScreenState extends State<SiteMappingScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _latController = TextEditingController();
-  final _lngController = TextEditingController();
+class _SiteMappingContent extends StatelessWidget {
+  const _SiteMappingContent({super.key});
 
-  @override
-  void dispose() {
-    _latController.dispose();
-    _lngController.dispose();
-    super.dispose();
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,11 +57,20 @@ class _SiteMappingScreenState extends State<SiteMappingScreen> {
   }
 
   void _onSaveMapping(BuildContext context) {
-    if (_formKey.currentState!.validate()) {
-      final lat = double.tryParse(_latController.text) ?? 0.0;
-      final lng = double.tryParse(_lngController.text) ?? 0.0;
-      context.read<SiteCubit>().updateSiteLocation('PRJ-2024-089', lat, lng);
+    final formState = context.read<SiteMappingFormCubit>().state;
+    final latStr = formState['lat'] ?? '';
+    final lngStr = formState['lng'] ?? '';
+
+    if (latStr.isEmpty || lngStr.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Latitude and Longitude are required')),
+      );
+      return;
     }
+
+    final lat = double.tryParse(latStr) ?? 0.0;
+    final lng = double.tryParse(lngStr) ?? 0.0;
+    context.read<SiteCubit>().updateSiteLocation('PRJ-2024-089', lat, lng);
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -139,56 +150,53 @@ class _SiteMappingScreenState extends State<SiteMappingScreen> {
           ),
         ],
       ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Geographic Data',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTextField('Latitude', 'e.g. 24.7136', isNumber: true, controller: _latController),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Geographic Data',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTextField('Longitude', 'e.g. 46.6753', isNumber: true, controller: _lngController),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextField(context, 'lat', 'Latitude', 'e.g. 24.7136', isNumber: true),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildTextField(context, 'lng', 'Longitude', 'e.g. 46.6753', isNumber: true),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _buildTextField(context, 'area', 'Total Area (sqm)', 'Enter total area', isNumber: true),
+          const SizedBox(height: 24),
+          Text(
+            'Site Boundaries (Polygons)',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            _buildTextField('Total Area (sqm)', 'Enter total area', isNumber: true),
-            const SizedBox(height: 24),
-            Text(
-              'Site Boundaries (Polygons)',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 16),
-            _buildBoundaryList(),
-            const SizedBox(height: 24),
-            Text(
-              'Zoning Information',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 16),
-            _buildDropdownField('Primary Zone Type', ['Commercial', 'Residential', 'Industrial', 'Mixed Use']),
-            const SizedBox(height: 16),
-            _buildTextField('Zone Restrictions', 'Enter any zoning restrictions or notes', maxLines: 3),
-          ],
-        ),
+          ),
+          const SizedBox(height: 16),
+          _buildBoundaryList(),
+          const SizedBox(height: 24),
+          Text(
+            'Zoning Information',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 16),
+          _buildDropdownField(context, 'zoneType', 'Primary Zone Type', ['Commercial', 'Residential', 'Industrial', 'Mixed Use']),
+          const SizedBox(height: 16),
+          _buildTextField(context, 'zoneRestrictions', 'Zone Restrictions', 'Enter any zoning restrictions or notes', maxLines: 3),
+        ],
       ),
     );
   }
@@ -301,7 +309,7 @@ class _SiteMappingScreenState extends State<SiteMappingScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, {bool isNumber = false, int maxLines = 1, TextEditingController? controller}) {
+  Widget _buildTextField(BuildContext context, String fieldKey, String label, String hint, {bool isNumber = false, int maxLines = 1}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -311,9 +319,9 @@ class _SiteMappingScreenState extends State<SiteMappingScreen> {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: controller,
           maxLines: maxLines,
           keyboardType: isNumber ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+          onChanged: (val) => context.read<SiteMappingFormCubit>().updateField(fieldKey, val),
           decoration: InputDecoration(
             hintText: hint,
             border: OutlineInputBorder(
@@ -331,18 +339,12 @@ class _SiteMappingScreenState extends State<SiteMappingScreen> {
             filled: true,
             fillColor: AppColors.background,
           ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'This field is required';
-            }
-            return null;
-          },
         ),
       ],
     );
   }
 
-  Widget _buildDropdownField(String label, List<String> items) {
+  Widget _buildDropdownField(BuildContext context, String fieldKey, String label, List<String> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -374,12 +376,10 @@ class _SiteMappingScreenState extends State<SiteMappingScreen> {
               child: Text(value),
             );
           }).toList(),
-          onChanged: (newValue) {},
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'This field is required';
+          onChanged: (newValue) {
+            if (newValue != null) {
+              context.read<SiteMappingFormCubit>().updateField(fieldKey, newValue);
             }
-            return null;
           },
         ),
       ],

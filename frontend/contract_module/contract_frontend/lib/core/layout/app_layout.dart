@@ -14,159 +14,169 @@ class NavItemData {
   NavItemData(this.title, this.icon, this.path);
 }
 
-class AppLayout extends StatefulWidget {
+class AppLayoutCubit extends Cubit<bool> {
+  AppLayoutCubit() : super(false);
+  void toggleSidebar() => emit(!state);
+}
+
+class AppLayout extends StatelessWidget {
   final Widget child;
 
   const AppLayout({super.key, required this.child});
 
   @override
-  State<AppLayout> createState() => _AppLayoutState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => AppLayoutCubit(),
+      child: _AppLayoutContent(child: child),
+    );
+  }
 }
 
-class _AppLayoutState extends State<AppLayout> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  bool _isSidebarCollapsed = false;
+class _AppLayoutContent extends StatelessWidget {
+  final Widget child;
 
-  void _toggleSidebar() {
-    setState(() {
-      _isSidebarCollapsed = !_isSidebarCollapsed;
-    });
-  }
+  const _AppLayoutContent({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isDesktop = constraints.maxWidth >= 900;
-        
-        // Force uncollapse if we switch to mobile so the drawer opens properly
-        final bool effectivelyCollapsed = isDesktop && _isSidebarCollapsed;
+    return BlocBuilder<AppLayoutCubit, bool>(
+      builder: (context, isSidebarCollapsed) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isDesktop = constraints.maxWidth >= 900;
+            
+            // Force uncollapse if we switch to mobile so the drawer opens properly
+            final bool effectivelyCollapsed = isDesktop && isSidebarCollapsed;
 
-        return Scaffold(
-          key: _scaffoldKey,
-          backgroundColor: AppColors.background,
-          appBar: isDesktop
-              ? null // No AppBar on desktop
-              : AppBar(
-                  backgroundColor: AppColors.primary,
-                  elevation: 0,
-                  leading: IconButton(
-                    icon: const Icon(Icons.menu, color: Colors.white),
-                    onPressed: () {
-                      _scaffoldKey.currentState?.openDrawer();
-                    },
-                  ),
-                  title: Row(
-                    children: [
-                      Image.asset('assets/images/logo.png', height: 32),
-                      const SizedBox(width: 8),
-                      const Text('SASHECO', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                    ],
-                  ),
-                ),
-          drawer: isDesktop
-              ? null
-              : Drawer(
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: _buildSidebar(context, isMobile: true, isCollapsed: false),
+            return Scaffold(
+              backgroundColor: AppColors.background,
+              appBar: isDesktop
+                  ? null // No AppBar on desktop
+                  : AppBar(
+                      backgroundColor: AppColors.primary,
+                      elevation: 0,
+                      leading: Builder(
+                        builder: (context) => IconButton(
+                          icon: const Icon(Icons.menu, color: Colors.white),
+                          onPressed: () {
+                            Scaffold.of(context).openDrawer();
+                          },
+                        ),
+                      ),
+                      title: Row(
+                        children: [
+                          Image.asset('assets/images/logo.png', height: 32),
+                          const SizedBox(width: 8),
+                          const Text('SASHECO', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                        ],
+                      ),
                     ),
+              drawer: isDesktop
+                  ? null
+                  : Drawer(
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      child: SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: _buildSidebar(context, isMobile: true, isCollapsed: false),
+                        ),
+                      ),
+                    ),
+              body: Stack(
+                children: [
+                  // Main content extends full width and height BEHIND the sidebar
+                  Container(
+                    margin: EdgeInsets.only(left: isDesktop ? (effectivelyCollapsed ? 84 : 280) : 0),
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: AppColors.background,
+                    child: child,
                   ),
-                ),
-          body: Stack(
-            children: [
-              // Main content extends full width and height BEHIND the sidebar
-              Container(
-                margin: EdgeInsets.only(left: isDesktop ? (effectivelyCollapsed ? 84 : 280) : 0),
-                width: double.infinity,
-                height: double.infinity,
-                color: AppColors.background,
-                child: widget.child,
+                  // Floating Sidebar
+                  if (isDesktop)
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: _buildSidebar(context, isMobile: false, isCollapsed: effectivelyCollapsed),
+                    ),
+                    // Collapse Toggle Button on Desktop
+                    if (isDesktop)
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
+                        left: effectivelyCollapsed ? 84 : 280,
+                        top: 72,
+                        child: GestureDetector(
+                          onTap: () => context.read<AppLayoutCubit>().toggleSidebar(),
+                          child: Container(
+                            width: 24,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E2130),
+                              borderRadius: const BorderRadius.only(
+                                topRight: Radius.circular(8),
+                                bottomRight: Radius.circular(8),
+                              ),
+                              border: Border(
+                                top: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+                                right: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+                                bottom: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(2, 0),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              effectivelyCollapsed ? Icons.chevron_right : Icons.chevron_left,
+                              size: 16,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    // Global Exit Module Button (Routes to App Launcher)
+                    Positioned(
+                      top: 24,
+                      right: 32,
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () => context.go('/apps'),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade300, width: 1),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.exit_to_app,
+                              color: Colors.black87,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              // Floating Sidebar
-              if (isDesktop)
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: _buildSidebar(context, isMobile: false, isCollapsed: effectivelyCollapsed),
-                ),
-                // Collapse Toggle Button on Desktop
-                if (isDesktop)
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    left: effectivelyCollapsed ? 84 : 280,
-                    top: 72,
-                    child: GestureDetector(
-                      onTap: _toggleSidebar,
-                      child: Container(
-                        width: 24,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E2130),
-                          borderRadius: const BorderRadius.only(
-                            topRight: Radius.circular(8),
-                            bottomRight: Radius.circular(8),
-                          ),
-                          border: Border(
-                            top: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
-                            right: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
-                            bottom: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 4,
-                              offset: const Offset(2, 0),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          effectivelyCollapsed ? Icons.chevron_right : Icons.chevron_left,
-                          size: 16,
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                // Global Exit Module Button (Routes to App Launcher)
-                Positioned(
-                  top: 24,
-                  right: 32,
-                  child: MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                      onTap: () => context.go('/apps'),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade300, width: 1),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.exit_to_app,
-                          color: Colors.black87,
-                          size: 24,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

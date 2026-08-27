@@ -16,6 +16,8 @@ public class SashecoDbContext : DbContext
     public DbSet<Contract> Contracts { get; set; }
     public DbSet<ContractItem> ContractItems { get; set; }
     public DbSet<ContractTerm> ContractTerms { get; set; }
+    public DbSet<ContractTemplate> ContractTemplates { get; set; }
+    public DbSet<TemplateItem> TemplateItems { get; set; }
     public DbSet<DrawingAttachment> DrawingAttachments { get; set; }
     public DbSet<Approval> Approvals { get; set; }
     public DbSet<ApprovalHistory> ApprovalHistories { get; set; }

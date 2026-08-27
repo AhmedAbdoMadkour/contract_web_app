@@ -5,47 +5,31 @@ import '../../data/model/contract_template_model.dart';
 import '../cubit/contract_templates_cubit.dart';
 import 'dart:math';
 
-class CreateTemplateDialog extends StatefulWidget {
+import '../cubit/create_template_form_cubit.dart';
+
+class CreateTemplateDialog extends StatelessWidget {
   const CreateTemplateDialog({super.key});
 
   @override
-  State<CreateTemplateDialog> createState() => _CreateTemplateDialogState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => CreateTemplateFormCubit(),
+      child: const _CreateTemplateDialogView(),
+    );
+  }
 }
 
-class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
-  final _titleController = TextEditingController();
-  final List<_TemplateItemForm> _items = [];
+class _CreateTemplateDialogView extends StatelessWidget {
+  const _CreateTemplateDialogView();
 
-  @override
-  void initState() {
-    super.initState();
-    _addItem(); // Start with one item by default
-  }
-
-  void _addItem() {
-    setState(() {
-      _items.add(_TemplateItemForm(
-        id: 'i${Random().nextInt(10000)}',
-        typeController: TextEditingController(),
-        nameController: TextEditingController(),
-        contentController: TextEditingController(),
-      ));
-    });
-  }
-
-  void _removeItem(int index) {
-    setState(() {
-      _items.removeAt(index);
-    });
-  }
-
-  void _saveTemplate() {
-    if (_titleController.text.trim().isEmpty) {
+  void _saveTemplate(BuildContext context) {
+    final formCubit = context.read<CreateTemplateFormCubit>();
+    if (formCubit.titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a template title')));
       return;
     }
 
-    final newItems = _items.map((item) {
+    final newItems = formCubit.state.items.map((item) {
       return TemplateItemModel(
         id: item.id,
         type: item.typeController.text.trim(),
@@ -55,8 +39,8 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
     }).toList();
 
     final newTemplate = ContractTemplateModel(
-      id: 'TPL-${Random().nextInt(9999).toString().padLeft(4, '0')}',
-      title: _titleController.text.trim(),
+      id: '',
+      title: formCubit.titleController.text.trim(),
       status: 'Draft',
       items: newItems,
       createdAt: DateTime.now(),
@@ -67,18 +51,8 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
   }
 
   @override
-  void dispose() {
-    _titleController.dispose();
-    for (var item in _items) {
-      item.typeController.dispose();
-      item.nameController.dispose();
-      item.contentController.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final formCubit = context.read<CreateTemplateFormCubit>();
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
@@ -103,7 +77,7 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
             ),
             const SizedBox(height: 24),
             TextField(
-              controller: _titleController,
+              controller: formCubit.titleController,
               decoration: InputDecoration(
                 labelText: 'Template Title',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -120,7 +94,7 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                 ),
                 TextButton.icon(
-                  onPressed: _addItem,
+                  onPressed: () => formCubit.addItem(),
                   icon: const Icon(Icons.add),
                   label: const Text('Add Item'),
                   style: TextButton.styleFrom(foregroundColor: AppColors.primary),
@@ -129,10 +103,14 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: ListView.builder(
-                itemCount: _items.length,
-                itemBuilder: (context, index) {
-                  return _buildItemCard(index);
+              child: BlocBuilder<CreateTemplateFormCubit, CreateTemplateFormState>(
+                builder: (context, state) {
+                  return ListView.builder(
+                    itemCount: state.items.length,
+                    itemBuilder: (context, index) {
+                      return _buildItemCard(context, index, state.items[index], state.items.length);
+                    },
+                  );
                 },
               ),
             ),
@@ -146,7 +124,7 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
-                  onPressed: _saveTemplate,
+                  onPressed: () => _saveTemplate(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -163,8 +141,7 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
     );
   }
 
-  Widget _buildItemCard(int index) {
-    final item = _items[index];
+  Widget _buildItemCard(BuildContext context, int index, TemplateItemForm item, int totalItems) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
@@ -181,10 +158,10 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
               children: [
                 Text('Item #${index + 1}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
                 const Spacer(),
-                if (_items.length > 1)
+                if (totalItems > 1)
                   IconButton(
                     icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
-                    onPressed: () => _removeItem(index),
+                    onPressed: () => context.read<CreateTemplateFormCubit>().removeItem(index),
                   ),
               ],
             ),
@@ -229,18 +206,4 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
       ),
     );
   }
-}
-
-class _TemplateItemForm {
-  final String id;
-  final TextEditingController typeController;
-  final TextEditingController nameController;
-  final TextEditingController contentController;
-
-  _TemplateItemForm({
-    required this.id,
-    required this.typeController,
-    required this.nameController,
-    required this.contentController,
-  });
 }

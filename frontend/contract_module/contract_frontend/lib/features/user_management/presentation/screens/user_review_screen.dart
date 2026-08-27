@@ -11,27 +11,54 @@ import '../../data/model/user_model.dart';
 
 enum UserViewMode { kanban, list }
 
-class UserReviewScreen extends StatefulWidget {
+class UserReviewFilterState {
+  final UserViewMode viewMode;
+  final String searchQuery;
+  final String selectedRoleFilter;
+
+  const UserReviewFilterState({
+    this.viewMode = UserViewMode.kanban,
+    this.searchQuery = '',
+    this.selectedRoleFilter = 'All',
+  });
+
+  UserReviewFilterState copyWith({
+    UserViewMode? viewMode,
+    String? searchQuery,
+    String? selectedRoleFilter,
+  }) {
+    return UserReviewFilterState(
+      viewMode: viewMode ?? this.viewMode,
+      searchQuery: searchQuery ?? this.searchQuery,
+      selectedRoleFilter: selectedRoleFilter ?? this.selectedRoleFilter,
+    );
+  }
+}
+
+class UserReviewFilterCubit extends Cubit<UserReviewFilterState> {
+  UserReviewFilterCubit() : super(const UserReviewFilterState());
+
+  void setViewMode(UserViewMode mode) => emit(state.copyWith(viewMode: mode));
+  void setSearchQuery(String query) => emit(state.copyWith(searchQuery: query));
+  void setRoleFilter(String filter) => emit(state.copyWith(selectedRoleFilter: filter));
+}
+
+class UserReviewScreen extends StatelessWidget {
   const UserReviewScreen({super.key});
 
   @override
-  State<UserReviewScreen> createState() => _UserReviewScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => UserReviewFilterCubit(),
+      child: const _UserReviewContent(),
+    );
+  }
 }
 
-class _UserReviewScreenState extends State<UserReviewScreen> {
-  UserViewMode _currentViewMode = UserViewMode.kanban;
-  String _searchQuery = '';
-  String _selectedRoleFilter = 'All';
+class _UserReviewContent extends StatelessWidget {
+  const _UserReviewContent({super.key});
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<UserManagementCubit>().loadUsers();
-    });
-  }
-
-  final List<UserModel> _fallbackDemoUsers = [
+  static final List<UserModel> _fallbackDemoUsers = [
     UserModel(
       id: '1',
       name: 'Emma Smith',
@@ -64,6 +91,12 @@ class _UserReviewScreenState extends State<UserReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (context.read<UserManagementCubit>().state is UserManagementInitial) {
+        context.read<UserManagementCubit>().loadUsers();
+      }
+    });
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: BlocConsumer<UserManagementCubit, UserManagementState>(
@@ -86,42 +119,46 @@ class _UserReviewScreenState extends State<UserReviewScreen> {
             users = _fallbackDemoUsers;
           }
 
-          final filteredUsers = users.where((u) {
-            final matchesSearch = u.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                u.email.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                u.role.toLowerCase().contains(_searchQuery.toLowerCase());
-            final matchesFilter = _selectedRoleFilter == 'All' ||
-                (_selectedRoleFilter == 'Active' && u.isActive) ||
-                (_selectedRoleFilter == 'Inactive' && !u.isActive);
-            return matchesSearch && matchesFilter;
-          }).toList();
+          return BlocBuilder<UserReviewFilterCubit, UserReviewFilterState>(
+            builder: (context, filterState) {
+              final filteredUsers = users.where((u) {
+                final matchesSearch = u.name.toLowerCase().contains(filterState.searchQuery.toLowerCase()) ||
+                    u.email.toLowerCase().contains(filterState.searchQuery.toLowerCase()) ||
+                    u.role.toLowerCase().contains(filterState.searchQuery.toLowerCase());
+                final matchesFilter = filterState.selectedRoleFilter == 'All' ||
+                    (filterState.selectedRoleFilter == 'Active' && u.isActive) ||
+                    (filterState.selectedRoleFilter == 'Inactive' && !u.isActive);
+                return matchesSearch && matchesFilter;
+              }).toList();
 
-          return Stack(
-            children: [
-              SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(context),
-                    const SizedBox(height: 24),
-                    _buildFilterAndToggleRow(context),
-                    const SizedBox(height: 24),
-                    if (_currentViewMode == UserViewMode.kanban)
-                      _buildKanbanView(context, filteredUsers)
-                    else
-                      _buildListView(context, filteredUsers),
-                  ],
-                ),
-              ),
-              if (state is UserManagementLoading)
-                Container(
-                  color: Colors.black12,
-                  child: const Center(
-                    child: CircularProgressIndicator(),
+              return Stack(
+                children: [
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(context),
+                        const SizedBox(height: 24),
+                        _buildFilterAndToggleRow(context, filterState),
+                        const SizedBox(height: 24),
+                        if (filterState.viewMode == UserViewMode.kanban)
+                          _buildKanbanView(context, filteredUsers)
+                        else
+                          _buildListView(context, filteredUsers),
+                      ],
+                    ),
                   ),
-                ),
-            ],
+                  if (state is UserManagementLoading)
+                    Container(
+                      color: Colors.black12,
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                ],
+              );
+            },
           );
         },
       ),
@@ -205,7 +242,7 @@ class _UserReviewScreenState extends State<UserReviewScreen> {
     );
   }
 
-  Widget _buildFilterAndToggleRow(BuildContext context) {
+  Widget _buildFilterAndToggleRow(BuildContext context, UserReviewFilterState filterState) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -214,7 +251,7 @@ class _UserReviewScreenState extends State<UserReviewScreen> {
             SizedBox(
               width: 280,
               child: TextField(
-                onChanged: (val) => setState(() => _searchQuery = val),
+                onChanged: (val) => context.read<UserReviewFilterCubit>().setSearchQuery(val),
                 decoration: InputDecoration(
                   hintText: 'Search users or roles...',
                   prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
@@ -240,9 +277,9 @@ class _UserReviewScreenState extends State<UserReviewScreen> {
                 ButtonSegment(value: 'Active', label: Text('Active', softWrap: false)),
                 ButtonSegment(value: 'Inactive', label: Text('Inactive', softWrap: false)),
               ],
-              selected: {_selectedRoleFilter},
+              selected: {filterState.selectedRoleFilter},
               onSelectionChanged: (set) {
-                setState(() => _selectedRoleFilter = set.first);
+                context.read<UserReviewFilterCubit>().setRoleFilter(set.first);
               },
             ),
           ],
@@ -260,15 +297,15 @@ class _UserReviewScreenState extends State<UserReviewScreen> {
               _buildToggleOption(
                 icon: Icons.view_kanban_outlined,
                 label: 'Kanban View',
-                isSelected: _currentViewMode == UserViewMode.kanban,
-                onTap: () => setState(() => _currentViewMode = UserViewMode.kanban),
+                isSelected: filterState.viewMode == UserViewMode.kanban,
+                onTap: () => context.read<UserReviewFilterCubit>().setViewMode(UserViewMode.kanban),
               ),
               const SizedBox(width: 4),
               _buildToggleOption(
                 icon: Icons.format_list_bulleted,
                 label: 'List View',
-                isSelected: _currentViewMode == UserViewMode.list,
-                onTap: () => setState(() => _currentViewMode = UserViewMode.list),
+                isSelected: filterState.viewMode == UserViewMode.list,
+                onTap: () => context.read<UserReviewFilterCubit>().setViewMode(UserViewMode.list),
               ),
             ],
           ),

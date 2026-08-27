@@ -4,6 +4,7 @@ import '../../../../core/shared/error/error_handler.dart';
 import '../../../../core/shared/network/network_service.dart';
 import '../model/secretary_inbox_item_model.dart';
 import '../model/secretary_task_model.dart';
+import 'package:sasheco_dashboard_web/features/engineering/data/model/contract_model.dart';
 import '../model/create_secretary_task_request.dart';
 import 'package:dio/dio.dart';
 
@@ -28,16 +29,22 @@ class SecretaryRepository {
     }
   }
 
-  Future<Either<Failure, List<SecretaryTaskModel>>> getTasks() async {
+  Future<Either<Failure, List<ContractModel>>> getTasks() async {
     try {
-      final response = await _networkService.get('/api/secretary/tasks');
+      // Secretary only cares about contracts that need drafting or are Draft
+      // Depending on backend, maybe /api/contracts?status=Draft
+      final response = await _networkService.get('/api/contracts');
       
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data;
-        final tasks = data.map((e) => SecretaryTaskModel.fromJson(e)).toList();
+        // Filter to Draft or just show all for now
+        final tasks = data
+            .map((e) => ContractModel.fromJson(e))
+            .where((c) => c.status == 'Draft' || c.status == '0')
+            .toList();
         return Right(tasks);
       } else {
-        return Left(ServerFailure('Failed to fetch tasks: ${response.statusCode}'));
+        return Left(ServerFailure('Failed to fetch contracts: ${response.statusCode}'));
       }
     } catch (e) {
       return Left(ErrorHandler.handleException(e));
@@ -91,6 +98,23 @@ class SecretaryRepository {
         return const Right(null);
       } else {
         return Left(ServerFailure('Failed to upload document: ${response.statusCode}'));
+      }
+    } catch (e) {
+      return Left(ErrorHandler.handleException(e));
+    }
+  }
+
+  Future<Either<Failure, void>> updateLegacyTerms(String id, String terms) async {
+    try {
+      final response = await _networkService.put(
+        '/api/contracts/$id/legacy-terms',
+        data: {'termsAndConditions': terms},
+      );
+      
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return const Right(null);
+      } else {
+        return Left(ServerFailure('Failed to update terms: ${response.statusCode}'));
       }
     } catch (e) {
       return Left(ErrorHandler.handleException(e));

@@ -15,6 +15,8 @@ public class UserRepository : Repository<User>, IUserRepository
     {
         return await _dbSet
             .Include(u => u.Role)
+                .ThenInclude(r => r!.RolePermissions)
+                    .ThenInclude(rp => rp.Permission)
             .FirstOrDefaultAsync(u => u.EmployeeNumber == identifier || u.Name == identifier || u.Email == identifier, cancellationToken);
     }
 

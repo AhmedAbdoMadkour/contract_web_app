@@ -21,12 +21,13 @@ class TemplateItemModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'type': type,
       'name': name,
       'content': content,
     };
+    if (id.isNotEmpty) map['id'] = id;
+    return map;
   }
 }
 
@@ -61,13 +62,14 @@ class ContractTemplateModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'title': title,
       'status': status,
       'items': items.map((e) => e.toJson()).toList(),
       'createdAt': createdAt.toIso8601String(),
     };
+    if (id.isNotEmpty) map['id'] = id;
+    return map;
   }
 
   ContractTemplateModel copyWith({

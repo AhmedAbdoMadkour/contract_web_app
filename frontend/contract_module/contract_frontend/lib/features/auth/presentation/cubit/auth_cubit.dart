@@ -14,10 +14,6 @@ class AuthCubit extends HydratedCubit<AuthState> {
   Future<void> login(String email, String password) async {
     emit(const AuthLoading());
     
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Fallback to repository
     final request = LoginRequestModel(email: email, password: password);
     final result = await _authRepository.login(request);
     

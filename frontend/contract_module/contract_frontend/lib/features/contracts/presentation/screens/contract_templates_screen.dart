@@ -229,14 +229,14 @@ class ContractTemplatesScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.background : Colors.transparent,
+          color: isActive ? AppColors.accent : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           title,
           style: TextStyle(
             color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
             fontSize: 14,
           ),
         ),

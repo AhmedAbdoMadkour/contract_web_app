@@ -185,6 +185,28 @@ namespace Sasheco.Infrastructure.Migrations
                     b.ToTable("ContractItems");
                 });
 
+            modelBuilder.Entity("Sasheco.Domain.Entities.ContractTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ContractTemplates");
+                });
+
             modelBuilder.Entity("Sasheco.Domain.Entities.ContractTerm", b =>
                 {
                     b.Property<Guid>("Id")
@@ -827,6 +849,34 @@ namespace Sasheco.Infrastructure.Migrations
                     b.ToTable("Sites");
                 });
 
+            modelBuilder.Entity("Sasheco.Domain.Entities.TemplateItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ContractTemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractTemplateId");
+
+                    b.ToTable("TemplateItems");
+                });
+
             modelBuilder.Entity("Sasheco.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1086,6 +1136,17 @@ namespace Sasheco.Infrastructure.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("Sasheco.Domain.Entities.TemplateItem", b =>
+                {
+                    b.HasOne("Sasheco.Domain.Entities.ContractTemplate", "Template")
+                        .WithMany("Items")
+                        .HasForeignKey("ContractTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Template");
+                });
+
             modelBuilder.Entity("Sasheco.Domain.Entities.User", b =>
                 {
                     b.HasOne("Sasheco.Domain.Entities.Role", "Role")
@@ -1111,6 +1172,11 @@ namespace Sasheco.Infrastructure.Migrations
                     b.Navigation("Items");
 
                     b.Navigation("Terms");
+                });
+
+            modelBuilder.Entity("Sasheco.Domain.Entities.ContractTemplate", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("Sasheco.Domain.Entities.Project", b =>

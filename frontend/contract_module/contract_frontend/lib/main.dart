@@ -47,53 +47,47 @@ void main() async {
         : HydratedStorageDirectory((await getApplicationDocumentsDirectory()).path),
   );
   final prefs = await SharedPreferences.getInstance();
+  final networkService = NetworkService();
+  final authCubit = AuthCubit(AuthRepository(networkService));
+  
+  networkService.getToken = () {
+    final state = authCubit.state;
+    if (state is AuthSuccess) {
+      return state.user.token;
+    }
+    return null;
+  };
+
+  final router = createAppRouter(authCubit);
   
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('en'), Locale('ar')],
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
-      child: MyApp(prefs: prefs),
+      child: MyApp(
+        prefs: prefs,
+        networkService: networkService,
+        authCubit: authCubit,
+        router: router,
+      ),
     ),
   );
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
+  final NetworkService networkService;
+  final AuthCubit authCubit;
+  final GoRouter router;
 
-  const MyApp({super.key, required this.prefs});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  late final NetworkService networkService;
-  late final AuthCubit authCubit;
-  late final GoRouter _router;
-
-  @override
-  void initState() {
-    super.initState();
-    networkService = NetworkService();
-    authCubit = AuthCubit(AuthRepository(networkService));
-    
-    networkService.getToken = () {
-      final state = authCubit.state;
-      if (state is AuthSuccess) {
-        return state.user.token;
-      }
-      return null;
-    };
-
-    _router = createAppRouter(authCubit);
-  }
-
-  @override
-  void dispose() {
-    authCubit.close();
-    super.dispose();
-  }
+  const MyApp({
+    super.key,
+    required this.prefs,
+    required this.networkService,
+    required this.authCubit,
+    required this.router,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +99,7 @@ class _MyAppState extends State<MyApp> {
           value: authCubit,
         ),
         BlocProvider(
-          create: (context) => LocaleCubit(widget.prefs),
+          create: (context) => LocaleCubit(prefs),
         ),
         BlocProvider(
           create: (context) => DashboardCubit(
@@ -158,7 +152,9 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         BlocProvider(
-          create: (context) => ContractTemplatesCubit()..loadTemplates(),
+          create: (context) => ContractTemplatesCubit(
+            ContractsRepository(networkService),
+          )..loadTemplates(),
         ),
       ],
       child: Builder(
@@ -166,7 +162,7 @@ class _MyAppState extends State<MyApp> {
           return MaterialApp.router(
             title: 'SASHECO Dashboard',
             theme: AppTheme.lightTheme,
-            routerConfig: _router,
+            routerConfig: router,
             debugShowCheckedModeBanner: false,
             localizationsDelegates: [
               ...context.localizationDelegates,

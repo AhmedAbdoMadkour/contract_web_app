@@ -6,6 +6,7 @@ import '../cubit/contracts_cubit.dart';
 import '../cubit/contracts_state.dart';
 import '../widgets/kanban_board.dart';
 import '../widgets/list_board.dart';
+import 'create_contract_dialog.dart';
 
 class ContractsScreen extends StatelessWidget {
   const ContractsScreen({super.key});
@@ -19,7 +20,7 @@ class ContractsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
+            _buildHeader(context),
             const SizedBox(height: 24),
             _buildFilterRow(context),
             const SizedBox(height: 24),
@@ -52,7 +53,7 @@ class ContractsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,7 +86,12 @@ class ContractsScreen extends StatelessWidget {
             _buildMetricItem('85%', 'Total value\ncontracts'),
             const SizedBox(width: 24),
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const CreateContractDialog(),
+                );
+              },
               icon: const Icon(Icons.add, size: 18),
               label: const Text('Add New Contract'),
               style: ElevatedButton.styleFrom(

@@ -4,43 +4,43 @@ import 'package:sasheco_dashboard_web/core/theme/app_colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/engineering_cubit.dart';
 import '../cubit/engineering_state.dart';
-class CreateEngineeringProjectScreen extends StatefulWidget {
+import '../cubit/create_engineering_project_form_cubit.dart';
+
+class CreateEngineeringProjectScreen extends StatelessWidget {
   const CreateEngineeringProjectScreen({super.key});
 
   @override
-  State<CreateEngineeringProjectScreen> createState() => _CreateEngineeringProjectScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => CreateEngineeringProjectFormCubit(),
+      child: const _CreateEngineeringProjectScreenView(),
+    );
+  }
 }
 
-class _CreateEngineeringProjectScreenState extends State<CreateEngineeringProjectScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _descController = TextEditingController();
-  DateTime? _startDate;
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _descController.dispose();
-    super.dispose();
-  }
+class _CreateEngineeringProjectScreenView extends StatelessWidget {
+  const _CreateEngineeringProjectScreenView();
 
   void _onCreateProject(BuildContext context) {
-    if (_formKey.currentState!.validate()) {
-      if (_startDate == null) {
+    final formCubit = context.read<CreateEngineeringProjectFormCubit>();
+    if (formCubit.formKey.currentState!.validate()) {
+      if (formCubit.state.startDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select a start date')),
         );
         return;
       }
       context.read<EngineeringCubit>().createProject(
-        name: _nameController.text,
-        description: _descController.text,
-        startDate: _startDate!,
+        name: formCubit.nameController.text,
+        description: formCubit.descController.text,
+        startDate: formCubit.state.startDate!,
       );
     }
   }  
+
   @override
   Widget build(BuildContext context) {
+    final formCubit = context.read<CreateEngineeringProjectFormCubit>();
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
@@ -57,14 +57,14 @@ class _CreateEngineeringProjectScreenState extends State<CreateEngineeringProjec
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withOpacity(0.04), // Should be withValues but it's fine
                     blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: Form(
-                key: _formKey,
+                key: formCubit.formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -79,7 +79,7 @@ class _CreateEngineeringProjectScreenState extends State<CreateEngineeringProjec
                     Row(
                       children: [
                         Expanded(
-                          child: _buildTextField('Project Name', 'Enter project name', controller: _nameController),
+                          child: _buildTextField('Project Name', 'Enter project name', controller: formCubit.nameController),
                         ),
                         const SizedBox(width: 24),
                         Expanded(
@@ -100,21 +100,25 @@ class _CreateEngineeringProjectScreenState extends State<CreateEngineeringProjec
                       ],
                     ),
                     const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildDateField(context, 'Start Date'),
-                        ),
-                        const SizedBox(width: 24),
-                        Expanded(
-                          child: _buildDateField(context, 'End Date'),
-                        ),
-                      ],
+                    BlocBuilder<CreateEngineeringProjectFormCubit, CreateEngineeringProjectFormState>(
+                      builder: (context, state) {
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: _buildDateField(context, 'Start Date', state.startDate, (date) => formCubit.setStartDate(date)),
+                            ),
+                            const SizedBox(width: 24),
+                            Expanded(
+                              child: _buildDateField(context, 'End Date', state.endDate, (date) => formCubit.setEndDate(date)),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 24),
                     _buildTextField('Project Location', 'Enter precise location address'),
                     const SizedBox(height: 24),
-                    _buildTextField('Description', 'Enter project description and objectives', maxLines: 4, controller: _descController),
+                    _buildTextField('Description', 'Enter project description and objectives', maxLines: 4, controller: formCubit.descController),
                     const SizedBox(height: 32),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -275,7 +279,7 @@ class _CreateEngineeringProjectScreenState extends State<CreateEngineeringProjec
     );
   }
 
-  Widget _buildDateField(BuildContext context, String label) {
+  Widget _buildDateField(BuildContext context, String label, DateTime? date, Function(DateTime) onDateSelected) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -287,7 +291,7 @@ class _CreateEngineeringProjectScreenState extends State<CreateEngineeringProjec
         TextFormField(
           readOnly: true,
           controller: TextEditingController(
-            text: _startDate != null ? "${_startDate!.toLocal()}".split(' ')[0] : '',
+            text: date != null ? "${date.toLocal()}".split(' ')[0] : '',
           ),
           decoration: InputDecoration(
             hintText: 'Select date',
@@ -310,14 +314,12 @@ class _CreateEngineeringProjectScreenState extends State<CreateEngineeringProjec
           onTap: () async {
             DateTime? pickedDate = await showDatePicker(
               context: context,
-              initialDate: DateTime.now(),
+              initialDate: date ?? DateTime.now(),
               firstDate: DateTime(2000),
               lastDate: DateTime(2101),
             );
             if (pickedDate != null) {
-              setState(() {
-                _startDate = pickedDate;
-              });
+              onDateSelected(pickedDate);
             }
           },
           validator: (value) {

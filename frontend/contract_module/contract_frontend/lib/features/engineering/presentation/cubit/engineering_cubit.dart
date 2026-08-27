@@ -72,4 +72,79 @@ class EngineeringCubit extends Cubit<EngineeringState> {
       (contracts) => emit(EngineeringContractsLoaded(contracts, _projects)),
     );
   }
+
+  void setDragging(bool isDragging) {
+    if (state is EngineeringContractsLoaded) {
+      final currentState = state as EngineeringContractsLoaded;
+      emit(currentState.copyWith(isDragging: isDragging));
+    }
+  }
+
+  Future<void> uploadDrawing(String contractId, dynamic fileBytes, String fileName) async {
+    final result = await _repository.uploadDrawing(
+      contractId: contractId,
+      fileBytes: fileBytes,
+      fileName: fileName,
+    );
+    result.fold(
+      (failure) => emit(EngineeringError(failure.message)),
+      (_) {
+        // Refetch to see the new drawing
+        if (state is EngineeringContractsLoaded) {
+          final s = state as EngineeringContractsLoaded;
+          if (s.projects.isNotEmpty) {
+            fetchProjectContracts(s.projects.first.id);
+          }
+        }
+      },
+    );
+  }
+
+  Future<void> addContractItem({
+    required String contractId,
+    required double price,
+    required int quantity,
+    required String descriptionEn,
+    required String descriptionAr,
+  }) async {
+    final result = await _repository.addContractItem(
+      contractId: contractId,
+      price: price,
+      quantity: quantity,
+      descriptionEn: descriptionEn,
+      descriptionAr: descriptionAr,
+    );
+    result.fold(
+      (failure) => emit(EngineeringError(failure.message)),
+      (_) {
+        // Find the project id of the contract we just updated
+        if (state is EngineeringContractsLoaded) {
+          final s = state as EngineeringContractsLoaded;
+          if (s.projects.isNotEmpty) {
+            fetchProjectContracts(s.projects.first.id);
+          }
+        }
+      },
+    );
+  }
+
+  Future<void> uploadBulkItems(String contractId, dynamic fileBytes, String fileName) async {
+    final result = await _repository.uploadBulkItems(
+      contractId: contractId,
+      fileBytes: fileBytes,
+      fileName: fileName,
+    );
+    result.fold(
+      (failure) => emit(EngineeringError(failure.message)),
+      (_) {
+        // Refetch to see the new items
+        if (state is EngineeringContractsLoaded) {
+          final s = state as EngineeringContractsLoaded;
+          if (s.projects.isNotEmpty) {
+            fetchProjectContracts(s.projects.first.id);
+          }
+        }
+      },
+    );
+  }
 }

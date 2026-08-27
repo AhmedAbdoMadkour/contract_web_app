@@ -19,7 +19,7 @@ class RoleModel extends Equatable {
       name: json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
       permissions: (json['permissions'] as List<dynamic>?)
-              ?.map((e) => e.toString())
+              ?.map((e) => (e is Map) ? e['name']?.toString() ?? '' : e.toString())
               .toList() ??
           [],
     );

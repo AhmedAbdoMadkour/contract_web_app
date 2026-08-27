@@ -59,4 +59,14 @@ class ContractsCubit extends Cubit<ContractsState> {
       }
     }
   }
+
+  Future<void> createContract(String projectId, String vendorId, String termsAndConditions) async {
+    try {
+      // Show loading maybe, but for simplicity just await and reload
+      await repository.createContract(projectId, vendorId, termsAndConditions);
+      await loadContracts();
+    } catch (e) {
+      emit(ContractsError(e.toString()));
+    }
+  }
 }

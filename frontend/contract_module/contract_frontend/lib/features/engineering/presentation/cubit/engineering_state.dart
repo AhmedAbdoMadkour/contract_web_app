@@ -63,9 +63,22 @@ class EngineeringStatusUpdated extends EngineeringState {
 class EngineeringContractsLoaded extends EngineeringState {
   final List<ContractModel> contracts;
   final List<EngineeringProjectModel> projects;
+  final bool isDragging;
 
-  const EngineeringContractsLoaded(this.contracts, this.projects);
+  const EngineeringContractsLoaded(this.contracts, this.projects, {this.isDragging = false});
+
+  EngineeringContractsLoaded copyWith({
+    List<ContractModel>? contracts,
+    List<EngineeringProjectModel>? projects,
+    bool? isDragging,
+  }) {
+    return EngineeringContractsLoaded(
+      contracts ?? this.contracts,
+      projects ?? this.projects,
+      isDragging: isDragging ?? this.isDragging,
+    );
+  }
 
   @override
-  List<Object?> get props => [contracts, projects];
+  List<Object?> get props => [contracts, projects, isDragging];
 }

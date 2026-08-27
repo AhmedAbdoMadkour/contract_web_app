@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:dartz/dartz.dart';
 import '../../../../core/shared/error/failures.dart';
 import '../../../../core/shared/error/error_handler.dart';
@@ -71,6 +72,73 @@ class EngineeringRepository {
       final List<dynamic> data = response.data;
       final contracts = data.map((json) => ContractModel.fromJson(json as Map<String, dynamic>)).toList();
       return Right(contracts);
+    } catch (e) {
+      return Left(ErrorHandler.handleException(e));
+    }
+  }
+
+  Future<Either<Failure, void>> addContractItem({
+    required String contractId,
+    required double price,
+    required int quantity,
+    required String descriptionEn,
+    required String descriptionAr,
+  }) async {
+    try {
+      await _networkService.post(
+        '/api/contracts/$contractId/items',
+        data: {
+          'price': price,
+          'quantity': quantity,
+          'descriptionEn': descriptionEn,
+          'descriptionAr': descriptionAr,
+        },
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(ErrorHandler.handleException(e));
+    }
+  }
+
+  Future<Either<Failure, void>> uploadDrawing({
+    required String contractId,
+    required dynamic fileBytes,
+    required String fileName,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': MultipartFile.fromBytes(
+          fileBytes,
+          filename: fileName,
+        ),
+      });
+      await _networkService.post(
+        '/api/contracts/$contractId/drawings',
+        data: formData,
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(ErrorHandler.handleException(e));
+    }
+  }
+
+  Future<Either<Failure, void>> uploadBulkItems({
+    required String contractId,
+    required dynamic fileBytes,
+    required String fileName,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': MultipartFile.fromBytes(
+          fileBytes,
+          filename: fileName,
+        ),
+      });
+      await _networkService.post(
+        '/api/contracts/$contractId/items/bulk',
+        data: formData,
+      );
+      return const Right(null);
     } catch (e) {
       return Left(ErrorHandler.handleException(e));
     }

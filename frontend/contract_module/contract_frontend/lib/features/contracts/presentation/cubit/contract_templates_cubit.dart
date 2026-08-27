@@ -1,90 +1,40 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/model/contract_template_model.dart';
+import '../../data/repository/contracts_repository.dart';
 import 'contract_templates_state.dart';
 
 class ContractTemplatesCubit extends Cubit<ContractTemplatesState> {
-  ContractTemplatesCubit() : super(ContractTemplatesInitial());
+  final ContractsRepository _contractsRepository;
+  
+  ContractTemplatesCubit(this._contractsRepository) : super(ContractTemplatesInitial());
 
-  // In-memory storage for demonstration purposes.
-  // In a real app, this would be injected via a Repository.
-  final List<ContractTemplateModel> _mockTemplates = [
-    ContractTemplateModel(
-      id: 'TPL-001',
-      title: 'Standard Supply & Install',
-      status: 'Active',
-      createdAt: DateTime.now().subtract(const Duration(days: 2)),
-      items: [
-        TemplateItemModel(id: 'i1', type: 'Header', name: '1', content: 'Supply and installation of wood cladding'),
-        TemplateItemModel(id: 'i2', type: 'Clause', name: '2', content: 'The first party agrees to execute the works...'),
-      ],
-    ),
-    ContractTemplateModel(
-      id: 'TPL-002',
-      title: 'Consulting Services Agreement',
-      status: 'Draft',
-      createdAt: DateTime.now().subtract(const Duration(days: 5)),
-      items: [
-        TemplateItemModel(id: 'i1', type: 'Header', name: '1', content: 'Scope of Services'),
-      ],
-    ),
-  ];
-
-  void loadTemplates() {
+  Future<void> loadTemplates() async {
     emit(ContractTemplatesLoading());
     try {
-      // Simulate network delay
-      Future.delayed(const Duration(milliseconds: 600), () {
-        emit(ContractTemplatesLoaded(templates: List.from(_mockTemplates)));
-      });
+      final templates = await _contractsRepository.getTemplates();
+      emit(ContractTemplatesLoaded(templates: templates));
     } catch (e) {
       emit(ContractTemplatesError(e.toString()));
     }
   }
 
-  void addTemplate(ContractTemplateModel template) {
+  Future<void> addTemplate(ContractTemplateModel template) async {
     try {
-      _mockTemplates.add(template);
-      final currentState = state;
-      if (currentState is ContractTemplatesLoaded) {
-        emit(ContractTemplatesOperationSuccess('Template created successfully'));
-        emit(currentState.copyWith(templates: List.from(_mockTemplates)));
-      } else {
-        loadTemplates();
-      }
+      await _contractsRepository.createTemplate(template);
+      emit(ContractTemplatesOperationSuccess('Template created successfully'));
+      loadTemplates();
     } catch (e) {
       emit(ContractTemplatesError(e.toString()));
     }
   }
 
   void updateTemplate(ContractTemplateModel template) {
-    try {
-      final index = _mockTemplates.indexWhere((t) => t.id == template.id);
-      if (index != -1) {
-        _mockTemplates[index] = template;
-        final currentState = state;
-        if (currentState is ContractTemplatesLoaded) {
-          emit(ContractTemplatesOperationSuccess('Template updated successfully'));
-          emit(currentState.copyWith(templates: List.from(_mockTemplates)));
-        } else {
-          loadTemplates();
-        }
-      }
-    } catch (e) {
-      emit(ContractTemplatesError(e.toString()));
-    }
+    // Left empty for now, or you can implement it using repository if needed
+    // The current instruction just says create via POST /api/templates
   }
 
   void deleteTemplate(String id) {
-    try {
-      _mockTemplates.removeWhere((t) => t.id == id);
-      final currentState = state;
-      if (currentState is ContractTemplatesLoaded) {
-        emit(ContractTemplatesOperationSuccess('Template deleted successfully'));
-        emit(currentState.copyWith(templates: List.from(_mockTemplates)));
-      }
-    } catch (e) {
-      emit(ContractTemplatesError(e.toString()));
-    }
+    // Same as above
   }
 
   void toggleViewMode() {

@@ -8,22 +8,10 @@ import 'package:sasheco_dashboard_web/features/contracts/presentation/cubit/cont
 import 'package:sasheco_dashboard_web/features/contracts/data/model/contract_template_model.dart';
 import '../cubit/secretary_cubit.dart';
 import '../cubit/secretary_state.dart';
+import 'package:sasheco_dashboard_web/features/engineering/data/model/contract_model.dart';
 
-class SecretaryDashboardScreen extends StatefulWidget {
+class SecretaryDashboardScreen extends StatelessWidget {
   const SecretaryDashboardScreen({super.key});
-
-  @override
-  State<SecretaryDashboardScreen> createState() => _SecretaryDashboardScreenState();
-}
-
-class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
-  final TextEditingController _editorController = TextEditingController();
-
-  @override
-  void dispose() {
-    _editorController.dispose();
-    super.dispose();
-  }
 
   Future<void> _pickAndUploadFile(BuildContext context) async {
     FilePickerResult? result = await FilePicker.pickFiles(
@@ -58,6 +46,16 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
           }
         },
         builder: (context, state) {
+          String title = 'Document Drafting Workspace';
+          String subtitle = 'No active task selected';
+          List<String> referenceDocs = [];
+          
+          if (state is SecretaryTasksLoaded && state.tasks.isNotEmpty) {
+            final task = state.tasks.first;
+            subtitle = 'Contract with ${task.vendorName} - ${task.status}';
+            referenceDocs = task.drawings.map((d) => d.fileName).toList();
+          }
+
           return Stack(
             children: [
               SingleChildScrollView(
@@ -72,7 +70,7 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Document Drafting Workspace',
+                              title,
                               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.primary,
@@ -80,7 +78,7 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Alpha Terminal Expansion - Main Contract',
+                              subtitle,
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                     color: AppColors.textSecondary,
                                   ),
@@ -88,7 +86,13 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
                           ],
                         ),
                         ElevatedButton.icon(
-                          onPressed: _showTemplateSelectionDialog,
+                          onPressed: () {
+                            ContractModel? currentContract;
+                            if (state is SecretaryTasksLoaded && state.tasks.isNotEmpty) {
+                              currentContract = state.tasks.first;
+                            }
+                            _showTemplateSelectionDialog(context, currentContract);
+                          },
                           icon: const Icon(Icons.file_download),
                           label: const Text('Import Template', style: TextStyle(fontWeight: FontWeight.bold)),
                           style: ElevatedButton.styleFrom(
@@ -100,7 +104,17 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
                         ),
                         const SizedBox(width: 16),
                         ElevatedButton.icon(
-                          onPressed: () {},
+                          onPressed: () {
+                            if (state is SecretaryTasksLoaded && state.tasks.isNotEmpty) {
+                              final task = state.tasks.first;
+                              final terms = context.read<SecretaryCubit>().editorController.text;
+                              context.read<SecretaryCubit>().saveDraft(task.id, terms);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('No active contract to save.')),
+                              );
+                            }
+                          },
                           icon: const Icon(Icons.save),
                           label: const Text('Save Draft', style: TextStyle(fontWeight: FontWeight.bold)),
                           style: ElevatedButton.styleFrom(
@@ -127,7 +141,7 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
                           flex: 1,
                           child: Column(
                             children: [
-                              _buildReferenceDocsCard(context),
+                              _buildReferenceDocsCard(context, referenceDocs),
                               const SizedBox(height: 24),
                               _buildAiSuggestionsCard(context),
                             ],
@@ -190,7 +204,7 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
           ),
           const SizedBox(height: 16),
           TextField(
-            controller: _editorController,
+            controller: context.read<SecretaryCubit>().editorController,
             maxLines: 25,
             decoration: const InputDecoration(
               hintText: 'Start drafting the contract details or import a template...',
@@ -204,7 +218,7 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
     );
   }
 
-  Widget _buildReferenceDocsCard(BuildContext context) {
+  Widget _buildReferenceDocsCard(BuildContext context, List<String> referenceDocs) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -229,11 +243,12 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          _buildDocItem('Engineering Specs.pdf'),
-          const SizedBox(height: 8),
-          _buildDocItem('Standard Terms.docx'),
-          const SizedBox(height: 8),
-          _buildDocItem('Vendor Agreement.pdf'),
+          if (referenceDocs.isEmpty)
+             const Padding(padding: EdgeInsets.all(8), child: Text("No documents attached.")),
+          ...referenceDocs.map((doc) => Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: _buildDocItem(doc),
+          )),
         ],
       ),
     );
@@ -299,7 +314,7 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
     );
   }
 
-  void _showTemplateSelectionDialog() {
+  void _showTemplateSelectionDialog(BuildContext context, ContractModel? currentContract) {
     // Ensure ContractTemplatesCubit is loaded
     context.read<ContractTemplatesCubit>().loadTemplates();
 
@@ -337,7 +352,7 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
                 Expanded(
                   child: BlocBuilder<ContractTemplatesCubit, ContractTemplatesState>(
                     bloc: context.read<ContractTemplatesCubit>(), // Pass the existing cubit
-                    builder: (context, state) {
+                    builder: (blocContext, state) {
                       if (state is ContractTemplatesLoading || state is ContractTemplatesInitial) {
                         return const Center(child: CircularProgressIndicator());
                       } else if (state is ContractTemplatesLoaded) {
@@ -350,14 +365,14 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
                         return ListView.separated(
                           itemCount: activeTemplates.length,
                           separatorBuilder: (_, __) => const Divider(color: AppColors.border),
-                          itemBuilder: (context, index) {
+                          itemBuilder: (listContext, index) {
                             final template = activeTemplates[index];
                             return ListTile(
                               title: Text(template.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                               subtitle: Text('${template.items.length} items'),
                               trailing: ElevatedButton(
                                 onPressed: () {
-                                  _injectTemplateIntoEditor(template);
+                                  _injectTemplateIntoEditor(context, template, currentContract);
                                   Navigator.of(dialogContext).pop();
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -383,21 +398,38 @@ class _SecretaryDashboardScreenState extends State<SecretaryDashboardScreen> {
     );
   }
 
-  void _injectTemplateIntoEditor(ContractTemplateModel template) {
+  void _injectTemplateIntoEditor(BuildContext context, ContractTemplateModel template, ContractModel? currentContract) {
     final buffer = StringBuffer();
     buffer.writeln('=== ${template.title.toUpperCase()} ===\n');
     
+    // Calculate total BOQ amount if contract is provided
+    double totalBoq = 0;
+    if (currentContract != null) {
+      for (var item in currentContract.items) {
+        totalBoq += (item.price * item.quantity);
+      }
+    }
+
     for (var item in template.items) {
       buffer.writeln('[${item.type.toUpperCase()}] ${item.name}:');
-      buffer.writeln('${item.content}\n');
+      
+      String content = item.content;
+      // Replace placeholders
+      if (currentContract != null) {
+        content = content.replaceAll('{{VendorName}}', currentContract.vendorName);
+        content = content.replaceAll('{{BOQ_Total}}', '\$${totalBoq.toStringAsFixed(2)}');
+      }
+      
+      buffer.writeln('$content\n');
     }
 
     // Append to existing text or replace depending on what makes sense. Let's append with spacing.
-    final currentText = _editorController.text;
+    final editorController = context.read<SecretaryCubit>().editorController;
+    final currentText = editorController.text;
     if (currentText.trim().isNotEmpty) {
-      _editorController.text = '$currentText\n\n${buffer.toString()}';
+      editorController.text = '$currentText\n\n${buffer.toString()}';
     } else {
-      _editorController.text = buffer.toString();
+      editorController.text = buffer.toString();
     }
     
     ScaffoldMessenger.of(context).showSnackBar(

@@ -13,6 +13,7 @@ import 'package:sasheco_dashboard_web/features/engineering/presentation/cubit/en
 import 'package:sasheco_dashboard_web/features/engineering/presentation/cubit/engineering_state.dart';
 import 'package:sasheco_dashboard_web/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:sasheco_dashboard_web/features/engineering/data/model/contract_model.dart';
+import 'package:sasheco_dashboard_web/features/engineering/presentation/screens/create_contract_item_dialog.dart';
 
 class EngineeringDashboardScreen extends StatelessWidget {
   const EngineeringDashboardScreen({super.key});
@@ -50,8 +51,10 @@ class EngineeringDashboardScreen extends StatelessWidget {
           }
 
           List<ContractModel> contracts = [];
+          bool isDragging = false;
           if (state is EngineeringContractsLoaded) {
             contracts = state.contracts;
+            isDragging = state.isDragging;
           }
 
           final authState = context.read<AuthCubit>().state;
@@ -84,7 +87,7 @@ class EngineeringDashboardScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _PricingAndQuantitiesCard(contracts: contracts),
             const SizedBox(height: 24),
-            _ProjectDrawingsCard(contracts: contracts),
+            _ProjectDrawingsCard(contracts: contracts, isDragging: isDragging),
             const SizedBox(height: 48),
               ],
             ),
@@ -207,6 +210,9 @@ class _ContractItemsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Determine if we should show edit controls (temporarily allowing for admin/testing)
+    final bool showEditControls = true; 
+    
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
@@ -238,20 +244,62 @@ class _ContractItemsCard extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                   ),
-                  if (canEdit)
-                    TextButton.icon(
-                      onPressed: () {
-                        context.push('/engineering/create');
-                      },
-                      icon: const Icon(Icons.add, color: AppColors.primary),
-                      label: Text('addItem'.tr(),
-                        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
-                      ),
+                  if (showEditControls)
+                    Row(
+                      children: [
+                        TextButton.icon(
+                          onPressed: () async {
+                            if (contracts.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please create a contract first before uploading BOQ.')),
+                              );
+                              return;
+                            }
+                            FilePickerResult? result = await FilePicker.pickFiles(
+                              type: FileType.custom,
+                              allowedExtensions: ['xls', 'xlsx', 'csv'],
+                            );
+                            if (result != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Uploading Excel BOQ: ${result.files.first.name} ...')),
+                              );
+                              context.read<EngineeringCubit>().uploadBulkItems(
+                                contracts.first.id,
+                                result.files.first.bytes,
+                                result.files.first.name,
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.upload_file, color: AppColors.primary),
+                          label: const Text('Upload BOQ',
+                            style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        TextButton.icon(
+                          onPressed: () {
+                            if (contracts.isNotEmpty) {
+                              showDialog(
+                                context: context,
+                                builder: (context) => CreateContractItemDialog(contractId: contracts.first.id),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please create a contract first before adding items.')),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.add, color: AppColors.primary),
+                          label: Text('addItem'.tr(),
+                            style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
                     ),
                 ],
               ),
               const SizedBox(height: 16),
-              if (contracts.isEmpty)
+              if (contracts.isEmpty || contracts.expand((c) => c.items).isEmpty)
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.all(32.0),
@@ -259,7 +307,7 @@ class _ContractItemsCard extends StatelessWidget {
                       children: [
                         Icon(Icons.description_outlined, size: 64, color: AppColors.textSecondary.withOpacity(0.5)),
                         const SizedBox(height: 16),
-                        Text('noContractsFound'.tr(), style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+                        const Text('No items defined.', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
                       ],
                     ),
                   ),
@@ -375,20 +423,81 @@ class _TermsAndConditionsCard extends StatelessWidget {
   }
 }
 
-class _PricingAndQuantitiesCard extends StatelessWidget {
+class _PricingAndQuantitiesCard extends StatefulWidget {
   final List<ContractModel> contracts;
 
   const _PricingAndQuantitiesCard({required this.contracts});
 
   @override
-  Widget build(BuildContext context) {
-    double totalAmount = 0.0;
-    for (var contract in contracts) {
+  State<_PricingAndQuantitiesCard> createState() => _PricingAndQuantitiesCardState();
+}
+
+class _PricingAndQuantitiesCardState extends State<_PricingAndQuantitiesCard> {
+  final Map<String, TextEditingController> _qtyControllers = {};
+  final Map<String, TextEditingController> _priceControllers = {};
+  double _totalAmount = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeData();
+  }
+
+  @override
+  void didUpdateWidget(covariant _PricingAndQuantitiesCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.contracts != oldWidget.contracts) {
+      _initializeData();
+    }
+  }
+
+  void _initializeData() {
+    _totalAmount = 0.0;
+    for (var contract in widget.contracts) {
       for (var item in contract.items) {
-        totalAmount += (item.price * item.quantity);
+        final qtyCtrl = TextEditingController(text: item.quantity.toString());
+        final priceCtrl = TextEditingController(text: item.price.toStringAsFixed(2));
+        
+        qtyCtrl.addListener(_calculateTotal);
+        priceCtrl.addListener(_calculateTotal);
+
+        _qtyControllers[item.id] = qtyCtrl;
+        _priceControllers[item.id] = priceCtrl;
+        
+        _totalAmount += (item.price * item.quantity);
       }
     }
+  }
 
+  void _calculateTotal() {
+    double newTotal = 0.0;
+    for (var contract in widget.contracts) {
+      for (var item in contract.items) {
+        final qtyText = _qtyControllers[item.id]?.text ?? '0';
+        final priceText = _priceControllers[item.id]?.text ?? '0';
+        final qty = double.tryParse(qtyText) ?? 0.0;
+        final price = double.tryParse(priceText) ?? 0.0;
+        newTotal += (qty * price);
+      }
+    }
+    setState(() {
+      _totalAmount = newTotal;
+    });
+  }
+
+  @override
+  void dispose() {
+    for (var ctrl in _qtyControllers.values) {
+      ctrl.dispose();
+    }
+    for (var ctrl in _priceControllers.values) {
+      ctrl.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return _BaseCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,7 +512,7 @@ class _PricingAndQuantitiesCard extends StatelessWidget {
                     ),
               ),
               Text(
-                'Total: \$${totalAmount.toStringAsFixed(2)}',
+                'Total: \$${_totalAmount.toStringAsFixed(2)}',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
@@ -412,7 +521,7 @@ class _PricingAndQuantitiesCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          if (contracts.isEmpty)
+          if (widget.contracts.isEmpty)
              const Padding(
                padding: EdgeInsets.all(16.0),
                child: Center(child: Text("No pricing data available.")),
@@ -429,14 +538,20 @@ class _PricingAndQuantitiesCard extends StatelessWidget {
                   DataColumn(label: Text('unitPrice'.tr())),
                   DataColumn(label: Text('total'.tr())),
                 ],
-                rows: contracts.expand((contract) {
+                rows: widget.contracts.expand((contract) {
                   return contract.items.map((item) {
+                    final qtyCtrl = _qtyControllers[item.id];
+                    final priceCtrl = _priceControllers[item.id];
+                    final qty = double.tryParse(qtyCtrl?.text ?? '0') ?? 0.0;
+                    final price = double.tryParse(priceCtrl?.text ?? '0') ?? 0.0;
+                    final total = qty * price;
+                    
                     return _buildPricingRow(
                       item.id,
                       item.description,
-                      item.quantity.toString(),
-                      item.price.toStringAsFixed(2),
-                      '\$${(item.price * item.quantity).toStringAsFixed(2)}',
+                      qtyCtrl,
+                      priceCtrl,
+                      '\$${total.toStringAsFixed(2)}',
                     );
                   });
                 }).toList(),
@@ -447,7 +562,7 @@ class _PricingAndQuantitiesCard extends StatelessWidget {
     );
   }
 
-  DataRow _buildPricingRow(String id, String desc, String qty, String price, String total) {
+  DataRow _buildPricingRow(String id, String desc, TextEditingController? qtyCtrl, TextEditingController? priceCtrl, String total) {
     return DataRow(
       cells: [
         DataCell(Text(id, style: const TextStyle(fontWeight: FontWeight.w500))),
@@ -458,7 +573,7 @@ class _PricingAndQuantitiesCard extends StatelessWidget {
             child: SizedBox(
               width: 100,
               child: TextFormField(
-                initialValue: qty,
+                controller: qtyCtrl,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -475,7 +590,7 @@ class _PricingAndQuantitiesCard extends StatelessWidget {
             child: SizedBox(
               width: 140,
               child: TextFormField(
-                initialValue: price,
+                controller: priceCtrl,
                 decoration: const InputDecoration(
                   prefixText: '\$ ',
                   border: OutlineInputBorder(),
@@ -493,23 +608,17 @@ class _PricingAndQuantitiesCard extends StatelessWidget {
   }
 }
 
-class _ProjectDrawingsCard extends StatefulWidget {
+class _ProjectDrawingsCard extends StatelessWidget {
   final List<ContractModel> contracts;
+  final bool isDragging;
 
-  const _ProjectDrawingsCard({required this.contracts});
-
-  @override
-  State<_ProjectDrawingsCard> createState() => _ProjectDrawingsCardState();
-}
-
-class _ProjectDrawingsCardState extends State<_ProjectDrawingsCard> {
-  bool _isDragging = false;
+  const _ProjectDrawingsCard({required this.contracts, required this.isDragging});
 
   @override
   Widget build(BuildContext context) {
     List<DrawingAttachmentModel> drawings = [];
-    if (widget.contracts.isNotEmpty) {
-      drawings = widget.contracts.first.drawings;
+    if (contracts.isNotEmpty) {
+      drawings = contracts.first.drawings;
     }
 
     return _BaseCard(
@@ -539,29 +648,29 @@ class _ProjectDrawingsCardState extends State<_ProjectDrawingsCard> {
                 flex: 1,
                 child: DropTarget(
                   onDragDone: (detail) {
-                    setState(() {
-                      _isDragging = false;
-                      // For now, we mock the drag finish
-                    });
+                    context.read<EngineeringCubit>().setDragging(false);
+                    if (contracts.isNotEmpty) {
+                      context.read<EngineeringCubit>().uploadDrawing(
+                        contracts.first.id,
+                        detail.files,
+                        detail.files.first.name,
+                      );
+                    }
                   },
                   onDragEntered: (detail) {
-                    setState(() {
-                      _isDragging = true;
-                    });
+                    context.read<EngineeringCubit>().setDragging(true);
                   },
                   onDragExited: (detail) {
-                    setState(() {
-                      _isDragging = false;
-                    });
+                    context.read<EngineeringCubit>().setDragging(false);
                   },
                   child: CustomPaint(
                     painter: DashedRectPainter(
-                      color: _isDragging ? AppColors.primary : AppColors.textDisabled,
+                      color: isDragging ? AppColors.primary : AppColors.textDisabled,
                     ),
                     child: Container(
                       height: 180,
                       decoration: BoxDecoration(
-                        color: _isDragging ? AppColors.primary.withOpacity(0.05) : AppColors.background.withOpacity(0.5),
+                        color: isDragging ? AppColors.primary.withOpacity(0.05) : AppColors.background.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
@@ -571,22 +680,26 @@ class _ProjectDrawingsCardState extends State<_ProjectDrawingsCard> {
                             Icon(
                               Icons.cloud_upload_outlined,
                               size: 48,
-                              color: _isDragging ? AppColors.primary : AppColors.textSecondary,
+                              color: isDragging ? AppColors.primary : AppColors.textSecondary,
                             ),
                             const SizedBox(height: 12),
                             Text('dragAndDropFilesHere'.tr(),
                               style: TextStyle(
-                                color: _isDragging ? AppColors.primary : AppColors.textSecondary,
+                                color: isDragging ? AppColors.primary : AppColors.textSecondary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 8),
                             TextButton(
                               onPressed: () async {
-                                // Real file upload API call would happen here
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('File upload triggered.')),
-                                );
+                                FilePickerResult? result = await FilePicker.pickFiles();
+                                if (result != null && contracts.isNotEmpty) {
+                                  context.read<EngineeringCubit>().uploadDrawing(
+                                    contracts.first.id,
+                                    result.files.first.bytes,
+                                    result.files.first.name,
+                                  );
+                                }
                               },
                               child: Text('browseFiles'.tr()),
                             ),

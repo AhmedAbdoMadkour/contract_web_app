@@ -7,39 +7,77 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:sasheco_dashboard_web/features/vendor/presentation/cubit/vendor_cubit.dart';
 import 'package:sasheco_dashboard_web/features/vendor/presentation/cubit/vendor_state.dart';
 
-class CreateVendorDialog extends StatefulWidget {
+class CreateVendorFormState {
+  final String name;
+  final String contactPerson;
+  final String email;
+  final String phone;
+
+  const CreateVendorFormState({
+    this.name = '',
+    this.contactPerson = '',
+    this.email = '',
+    this.phone = '',
+  });
+
+  CreateVendorFormState copyWith({
+    String? name,
+    String? contactPerson,
+    String? email,
+    String? phone,
+  }) {
+    return CreateVendorFormState(
+      name: name ?? this.name,
+      contactPerson: contactPerson ?? this.contactPerson,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+    );
+  }
+}
+
+class CreateVendorFormCubit extends Cubit<CreateVendorFormState> {
+  CreateVendorFormCubit() : super(const CreateVendorFormState());
+
+  void setName(String value) => emit(state.copyWith(name: value));
+  void setContactPerson(String value) => emit(state.copyWith(contactPerson: value));
+  void setEmail(String value) => emit(state.copyWith(email: value));
+  void setPhone(String value) => emit(state.copyWith(phone: value));
+}
+
+class CreateVendorDialog extends StatelessWidget {
   const CreateVendorDialog({super.key});
 
   @override
-  State<CreateVendorDialog> createState() => _CreateVendorDialogState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => CreateVendorFormCubit(),
+      child: const _CreateVendorDialogContent(),
+    );
+  }
 }
 
-class _CreateVendorDialogState extends State<CreateVendorDialog> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _contactPersonController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
+class _CreateVendorDialogContent extends StatelessWidget {
+  const _CreateVendorDialogContent({super.key});
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _contactPersonController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    if (_formKey.currentState?.validate() ?? false) {
-      final model = CreateVendorModel(
-        name: _nameController.text.trim(),
-        contactPerson: _contactPersonController.text.trim(),
-        email: _emailController.text.trim(),
-        phone: _phoneController.text.trim(),
+  void _submit(BuildContext context) {
+    final formState = context.read<CreateVendorFormCubit>().state;
+    if (formState.name.trim().isEmpty || 
+        formState.contactPerson.trim().isEmpty || 
+        formState.email.trim().isEmpty || 
+        formState.phone.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields'), backgroundColor: Colors.red),
       );
-      context.read<VendorCubit>().createVendor(model);
+      return;
     }
+
+    final model = CreateVendorModel(
+      name: formState.name.trim(),
+      contactPerson: formState.contactPerson.trim(),
+      email: formState.email.trim(),
+      phone: formState.phone.trim(),
+    );
+    context.read<VendorCubit>().createVendor(model);
   }
 
   @override
@@ -62,84 +100,75 @@ class _CreateVendorDialogState extends State<CreateVendorDialog> {
         child: Container(
           width: 500,
           padding: const EdgeInsets.all(32),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'addNewVendor'.tr(),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                ),
-                const SizedBox(height: 24),
-                _buildTextField('Vendor Name', _nameController),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(child: _buildTextField('Contact Person', _contactPersonController)),
-                    const SizedBox(width: 16),
-                    Expanded(child: _buildTextField('Email', _emailController, keyboardType: TextInputType.emailAddress)),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildTextField('Phone', _phoneController, keyboardType: TextInputType.phone),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text('cancel'.tr(), style: const TextStyle(color: AppColors.textSecondary)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'addNewVendor'.tr(),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
                     ),
-                    const SizedBox(width: 16),
-                    BlocBuilder<VendorCubit, VendorState>(
-                      builder: (context, state) {
-                        final isLoading = state is VendorLoading;
-                        return ElevatedButton(
-                          onPressed: isLoading ? null : _submit,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                                )
-                              : Text('saveVendor'.tr(), style: const TextStyle(color: Colors.white)),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 24),
+              _buildTextField('Vendor Name', (val) => context.read<CreateVendorFormCubit>().setName(val)),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(child: _buildTextField('Contact Person', (val) => context.read<CreateVendorFormCubit>().setContactPerson(val))),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildTextField('Email', (val) => context.read<CreateVendorFormCubit>().setEmail(val), keyboardType: TextInputType.emailAddress)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildTextField('Phone', (val) => context.read<CreateVendorFormCubit>().setPhone(val), keyboardType: TextInputType.phone),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('cancel'.tr(), style: const TextStyle(color: AppColors.textSecondary)),
+                  ),
+                  const SizedBox(width: 16),
+                  BlocBuilder<VendorCubit, VendorState>(
+                    builder: (context, state) {
+                      final isLoading = state is VendorLoading;
+                      return ElevatedButton(
+                        onPressed: isLoading ? null : () => _submit(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              )
+                            : Text('saveVendor'.tr(), style: const TextStyle(color: Colors.white)),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {TextInputType? keyboardType}) {
+  Widget _buildTextField(String label, Function(String) onChanged, {TextInputType? keyboardType}) {
     return TextFormField(
-      controller: controller,
+      onChanged: onChanged,
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       ),
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return 'Please enter $label';
-        }
-        return null;
-      },
     );
   }
 }

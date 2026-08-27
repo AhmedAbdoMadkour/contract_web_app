@@ -7,24 +7,17 @@ import '../widgets/approval_action_dialog.dart';
 import '../widgets/approval_history_pane.dart';
 import 'package:sasheco_dashboard_web/core/widgets/module_exit_button.dart';
 
-class ApprovalDashboardScreen extends StatefulWidget {
+class ApprovalDashboardScreen extends StatelessWidget {
   const ApprovalDashboardScreen({super.key});
 
   @override
-  State<ApprovalDashboardScreen> createState() => _ApprovalDashboardScreenState();
-}
-
-class _ApprovalDashboardScreenState extends State<ApprovalDashboardScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ApprovalCubit>().fetchApprovals();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Replace stateful init with a post-frame callback
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (context.read<ApprovalCubit>().state is ApprovalInitial) {
+        context.read<ApprovalCubit>().fetchApprovals();
+      }
+    });
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: BlocConsumer<ApprovalCubit, ApprovalState>(

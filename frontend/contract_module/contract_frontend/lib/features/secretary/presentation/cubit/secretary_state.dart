@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../data/model/secretary_inbox_item_model.dart';
-import '../../data/model/secretary_task_model.dart';
+import 'package:sasheco_dashboard_web/features/engineering/data/model/contract_model.dart';
 
 abstract class SecretaryState extends Equatable {
   const SecretaryState();
@@ -23,7 +23,7 @@ class SecretaryInboxLoaded extends SecretaryState {
 }
 
 class SecretaryTasksLoaded extends SecretaryState {
-  final List<SecretaryTaskModel> tasks;
+  final List<ContractModel> tasks;
 
   const SecretaryTasksLoaded(this.tasks);
 

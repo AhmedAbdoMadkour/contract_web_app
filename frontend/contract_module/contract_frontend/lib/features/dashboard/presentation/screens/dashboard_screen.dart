@@ -10,24 +10,16 @@ import '../cubit/dashboard_cubit.dart';
 import '../cubit/dashboard_state.dart';
 import '../../data/model/dashboard_metrics_model.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DashboardCubit>().loadDashboardMetrics();
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (context.read<DashboardCubit>().state is DashboardInitial) {
+        context.read<DashboardCubit>().loadDashboardMetrics();
+      }
+    });
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -47,7 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               if (state is DashboardLoading || state is DashboardInitial) {
                 return _buildLoadingState();
               } else if (state is DashboardError) {
-                return _buildErrorState(state.message);
+                return _buildErrorState(context, state.message);
               } else if (state is DashboardLoaded) {
                 return _buildContent(context, state.metrics);
               }
@@ -59,7 +51,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildErrorState(String message) {
+  Widget _buildErrorState(BuildContext context, String message) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

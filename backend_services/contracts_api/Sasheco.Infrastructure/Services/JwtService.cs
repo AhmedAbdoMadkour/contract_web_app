@@ -24,13 +24,25 @@ public class JwtService : IJwtService
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claimsList = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Name),
             new Claim(ClaimTypes.Role, user.Role?.Name ?? "User") 
         };
+
+        if (user.Role?.RolePermissions != null)
+        {
+            foreach (var rp in user.Role.RolePermissions)
+            {
+                if (rp.Permission != null && !string.IsNullOrEmpty(rp.Permission.NameEn))
+                {
+                    claimsList.Add(new Claim("Permission", rp.Permission.NameEn));
+                }
+            }
+        }
+        var claims = claimsList.ToArray();
 
         var token = new JwtSecurityToken(
             issuer: jwtSettings["Issuer"] ?? "SashecoApi",

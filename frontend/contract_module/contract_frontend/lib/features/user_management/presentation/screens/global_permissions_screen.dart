@@ -63,12 +63,15 @@ class GlobalPermissionsScreen extends StatelessWidget {
   }
 
   DataRow _buildRoleRow(BuildContext context, RoleModel role) {
-    bool hasContract = role.permissions.contains('Contract');
-    bool hasFinance = role.permissions.contains('Finance');
-    bool hasUsers = role.permissions.contains('Users');
-    bool hasEngineering = role.permissions.contains('Engineering');
+    bool hasContract = role.permissions.any((p) => p.contains('Approval') || p.contains('Secretary') || p.contains('Vendor'));
+    bool hasFinance = role.permissions.any((p) => p.contains('Finance'));
+    bool hasUsers = role.permissions.any((p) => p.contains('User'));
+    bool hasEngineering = role.permissions.any((p) => p.contains('Engineering') || p.contains('Site'));
     
-    var otherPerms = role.permissions.where((p) => !['Contract', 'Finance', 'Users', 'Engineering'].contains(p)).toList();
+    var otherPerms = role.permissions.where((p) => 
+        !p.contains('Approval') && !p.contains('Secretary') && !p.contains('Vendor') &&
+        !p.contains('Finance') && !p.contains('User') && !p.contains('Engineering') && !p.contains('Site')
+    ).toList();
 
     return DataRow(
       cells: [
@@ -110,68 +113,82 @@ class GlobalPermissionsScreen extends StatelessWidget {
   }
 }
 
-class _EditRoleDialog extends StatefulWidget {
+class RolePermissionsCubit extends Cubit<List<String>> {
+  RolePermissionsCubit(super.initialPermissions);
+
+  void togglePermission(String permission, bool selected) {
+    if (selected) {
+      if (!state.contains(permission)) {
+        emit([...state, permission]);
+      }
+    } else {
+      if (state.contains(permission)) {
+        emit(state.where((p) => p != permission).toList());
+      }
+    }
+  }
+}
+
+class _EditRoleDialog extends StatelessWidget {
   final RoleModel role;
   final BuildContext parentContext;
 
   const _EditRoleDialog({required this.role, required this.parentContext});
 
-  @override
-  State<_EditRoleDialog> createState() => _EditRoleDialogState();
-}
-
-class _EditRoleDialogState extends State<_EditRoleDialog> {
-  final List<String> _allPermissions = [
+  static const List<String> _allPermissions = [
     'Contract', 'Finance', 'Users', 'Engineering', 'Secretary', 'Approval', 'Vendor', 'Site'
   ];
-  late List<String> _selectedPermissions;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedPermissions = List.from(widget.role.permissions);
-  }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Edit Permissions: ${widget.role.name}'),
-      content: SizedBox(
-        width: 400,
-        child: Wrap(
-          spacing: 8.0,
-          runSpacing: 8.0,
-          children: _allPermissions.map((permission) {
-            final isSelected = _selectedPermissions.contains(permission);
-            return FilterChip(
-              label: Text(permission),
-              selected: isSelected,
-              onSelected: (selected) {
-                setState(() {
-                  if (selected) {
-                    _selectedPermissions.add(permission);
-                  } else {
-                    _selectedPermissions.remove(permission);
-                  }
-                });
-              },
-            );
-          }).toList(),
-        ),
+    return BlocProvider(
+      create: (_) => RolePermissionsCubit(List.from(role.permissions)),
+      child: Builder(
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Edit Permissions: ${role.name}'),
+            content: SizedBox(
+              width: 400,
+              child: BlocBuilder<RolePermissionsCubit, List<String>>(
+                builder: (context, selectedPermissions) {
+                  return Wrap(
+                    spacing: 8.0,
+                    runSpacing: 8.0,
+                    children: _allPermissions.map((permission) {
+                      final isSelected = selectedPermissions.contains(permission);
+                      return FilterChip(
+                        label: Text(permission),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          context.read<RolePermissionsCubit>().togglePermission(permission, selected);
+                        },
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              Builder(
+                builder: (buttonContext) {
+                  return ElevatedButton(
+                    onPressed: () {
+                      final selectedPermissions = buttonContext.read<RolePermissionsCubit>().state;
+                      parentContext.read<RolesCubit>().updateRolePermissions(role.id, selectedPermissions);
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Save'),
+                  );
+                }
+              ),
+            ],
+          );
+        },
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            widget.parentContext.read<RolesCubit>().updateRolePermissions(widget.role.id, _selectedPermissions);
-            Navigator.pop(context);
-          },
-          child: const Text('Save'),
-        ),
-      ],
     );
   }
 }
