@@ -81,8 +81,8 @@ class EngineeringRepository {
     required String contractId,
     required double price,
     required int quantity,
-    required String descriptionEn,
-    required String descriptionAr,
+    required String itemCode,
+    required String itemName,
   }) async {
     try {
       await _networkService.post(
@@ -90,8 +90,8 @@ class EngineeringRepository {
         data: {
           'price': price,
           'quantity': quantity,
-          'descriptionEn': descriptionEn,
-          'descriptionAr': descriptionAr,
+          'itemCode': itemCode,
+          'itemName': itemName,
         },
       );
       return const Right(null);
@@ -135,7 +135,7 @@ class EngineeringRepository {
         ),
       });
       await _networkService.post(
-        '/api/contracts/$contractId/items/bulk',
+        '/api/Engineering/$contractId/items/bulk',
         data: formData,
       );
       return const Right(null);

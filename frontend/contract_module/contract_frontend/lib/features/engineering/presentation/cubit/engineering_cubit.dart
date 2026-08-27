@@ -104,15 +104,15 @@ class EngineeringCubit extends Cubit<EngineeringState> {
     required String contractId,
     required double price,
     required int quantity,
-    required String descriptionEn,
-    required String descriptionAr,
+    required String itemCode,
+    required String itemName,
   }) async {
     final result = await _repository.addContractItem(
       contractId: contractId,
       price: price,
       quantity: quantity,
-      descriptionEn: descriptionEn,
-      descriptionAr: descriptionAr,
+      itemCode: itemCode,
+      itemName: itemName,
     );
     result.fold(
       (failure) => emit(EngineeringError(failure.message)),

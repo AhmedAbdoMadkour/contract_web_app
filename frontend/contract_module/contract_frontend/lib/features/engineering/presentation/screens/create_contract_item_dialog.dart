@@ -75,17 +75,16 @@ class _CreateContractItemDialogView extends StatelessWidget {
           const SizedBox(height: 24),
           
           TextFormField(
-            controller: formCubit.descEnController,
-            decoration: _inputDecoration('Description (English)', Icons.description_outlined),
+            controller: formCubit.itemCodeController,
+            decoration: _inputDecoration('Item Code', Icons.qr_code),
             validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
           ),
           const SizedBox(height: 16),
           
           TextFormField(
-            controller: formCubit.descArController,
-            decoration: _inputDecoration('Description (Arabic)', Icons.description_outlined),
+            controller: formCubit.itemNameController,
+            decoration: _inputDecoration('Item Name', Icons.description_outlined),
             validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
-            textDirection: ui.TextDirection.rtl,
           ),
           const SizedBox(height: 16),
           
@@ -133,8 +132,8 @@ class _CreateContractItemDialogView extends StatelessWidget {
                       contractId: contractId,
                       price: double.parse(formCubit.priceController.text),
                       quantity: int.parse(formCubit.quantityController.text),
-                      descriptionEn: formCubit.descEnController.text,
-                      descriptionAr: formCubit.descArController.text,
+                      itemCode: formCubit.itemCodeController.text,
+                      itemName: formCubit.itemNameController.text,
                     );
                     Navigator.of(context).pop();
                   }
