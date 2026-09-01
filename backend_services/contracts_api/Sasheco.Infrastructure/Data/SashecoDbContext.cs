@@ -28,6 +28,9 @@ public class SashecoDbContext : DbContext
     public DbSet<SecretaryInboxItem> SecretaryInboxItems { get; set; }
     public DbSet<SecretaryDocument> SecretaryDocuments { get; set; }
     public DbSet<Site> Sites { get; set; }
+    public DbSet<PaymentCertificate> PaymentCertificates { get; set; }
+    public DbSet<PaymentCertificateItem> PaymentCertificateItems { get; set; }
+    public DbSet<PaymentCertificateApproval> PaymentCertificateApprovals { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -68,6 +71,22 @@ public class SashecoDbContext : DbContext
 
         modelBuilder.Entity<FinanceMilestone>()
             .Property(fm => fm.Amount)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<PaymentCertificate>()
+            .Property(pc => pc.TotalAmount)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<PaymentCertificateItem>()
+            .Property(pci => pci.Quantity)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<PaymentCertificateItem>()
+            .Property(pci => pci.UnitPrice)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<PaymentCertificateItem>()
+            .Property(pci => pci.TotalPrice)
             .HasPrecision(18, 2);
 
         var adminRoleId = Guid.Parse("11111111-1111-1111-1111-111111111111");
