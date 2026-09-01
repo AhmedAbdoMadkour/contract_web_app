@@ -22,6 +22,8 @@ builder.Services.AddScoped(typeof(Sasheco.Domain.Interfaces.IRepository<>), type
 builder.Services.AddScoped<Sasheco.Domain.Interfaces.IUserRepository, Sasheco.Infrastructure.Repositories.UserRepository>();
 builder.Services.AddScoped<Sasheco.Application.Interfaces.IJwtService, Sasheco.Infrastructure.Services.JwtService>();
 builder.Services.AddScoped<Sasheco.Application.Engineering.Services.IContractPdfGenerator, Sasheco.Application.Engineering.Services.ContractPdfGenerator>();
+builder.Services.AddScoped<Sasheco.Application.Interfaces.IVariableBindingService, Sasheco.Infrastructure.Services.VariableBindingService>();
+builder.Services.AddScoped<Sasheco.Application.Interfaces.IPdfGenerationService, Sasheco.Infrastructure.Services.PdfGenerationService>();
 // Configure Validation
 builder.Services.AddValidatorsFromAssemblyContaining<Sasheco.Application.Auth.Validators.LoginRequestValidator>();
 

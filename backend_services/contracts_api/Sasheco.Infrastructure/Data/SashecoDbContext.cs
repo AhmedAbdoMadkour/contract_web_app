@@ -31,7 +31,8 @@ public class SashecoDbContext : DbContext
     public DbSet<PaymentCertificate> PaymentCertificates { get; set; }
     public DbSet<PaymentCertificateItem> PaymentCertificateItems { get; set; }
     public DbSet<PaymentCertificateApproval> PaymentCertificateApprovals { get; set; }
-
+    public DbSet<DocumentTemplate> DocumentTemplates { get; set; }
+    public DbSet<TemplateClause> TemplateClauses { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

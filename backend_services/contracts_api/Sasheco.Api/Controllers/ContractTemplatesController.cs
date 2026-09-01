@@ -7,13 +7,13 @@ using Sasheco.Infrastructure.Data;
 namespace Sasheco.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/contract-templates")]
 [Authorize]
-public class TemplatesController : ControllerBase
+public class ContractTemplatesController : ControllerBase
 {
     private readonly SashecoDbContext _context;
 
-    public TemplatesController(SashecoDbContext context)
+    public ContractTemplatesController(SashecoDbContext context)
     {
         _context = context;
     }

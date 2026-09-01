@@ -1096,7 +1096,7 @@
           }
         }
       },
-      "QuestPDF/2026.7.2": {
+      "QuestPDF/2026.8.0": {
         "type": "package",
         "compile": {
           "lib/net10.0/QuestPDF.dll": {
@@ -3704,10 +3704,10 @@
         "packageIcon.png"
       ]
     },
-    "QuestPDF/2026.7.2": {
-      "sha512": "GSPOoErqB4Yh7mnbV4m/ykHOF6erHdm5qyMRHDr4sjk+fvrtkEL+RoG5YpOqiWrS833jEiktC1Uthyy5/QMNQA==",
+    "QuestPDF/2026.8.0": {
+      "sha512": "6c/YtDiZm8NgxnFdUDom+IWGVXKhiwBVJ3cvlyIXZYH7Wp0HaXWoR2XWj/RAsZfjpW7J5LMVc1EF6JnJFouoXQ==",
       "type": "package",
-      "path": "questpdf/2026.7.2",
+      "path": "questpdf/2026.8.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -3766,7 +3766,7 @@
         "lib/net8.0/QuestPDF.xml",
         "lib/netstandard2.0/QuestPDF.dll",
         "lib/netstandard2.0/QuestPDF.xml",
-        "questpdf.2026.7.2.nupkg.sha512",
+        "questpdf.2026.8.0.nupkg.sha512",
         "questpdf.nuspec",
         "runtimes/linux-arm64/native/libQuestPdfSkia.so",
         "runtimes/linux-arm64/native/libqpdf.so",
@@ -4284,6 +4284,7 @@
       "Microsoft.EntityFrameworkCore.Design >= 10.0.10",
       "Microsoft.EntityFrameworkCore.SqlServer >= 10.0.10",
       "Microsoft.EntityFrameworkCore.Sqlite >= 10.0.10",
+      "QuestPDF >= 2026.8.0",
       "Sasheco.Application >= 1.0.0",
       "Sasheco.Domain >= 1.0.0"
     ]
@@ -4362,6 +4363,10 @@
           "Microsoft.EntityFrameworkCore.Sqlite": {
             "target": "Package",
             "version": "[10.0.10, )"
+          },
+          "QuestPDF": {
+            "target": "Package",
+            "version": "[2026.8.0, )"
           }
         },
         "imports": [
