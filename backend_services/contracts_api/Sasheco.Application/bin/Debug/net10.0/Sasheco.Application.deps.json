@@ -11,7 +11,7 @@
           "FluentValidation": "12.1.1",
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "MediatR": "12.4.1",
-          "QuestPDF": "2026.7.2",
+          "QuestPDF": "2026.8.0",
           "Sasheco.Domain": "1.0.0"
         },
         "runtime": {
@@ -66,11 +66,11 @@
           }
         }
       },
-      "QuestPDF/2026.7.2": {
+      "QuestPDF/2026.8.0": {
         "runtime": {
           "lib/net10.0/QuestPDF.dll": {
-            "assemblyVersion": "2026.7.2.0",
-            "fileVersion": "2026.7.2.0"
+            "assemblyVersion": "2026.8.0.0",
+            "fileVersion": "2026.8.0.0"
           }
         },
         "runtimeTargets": {
@@ -207,12 +207,12 @@
       "path": "microsoft.extensions.dependencyinjection.abstractions/8.0.0",
       "hashPath": "microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512"
     },
-    "QuestPDF/2026.7.2": {
+    "QuestPDF/2026.8.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-GSPOoErqB4Yh7mnbV4m/ykHOF6erHdm5qyMRHDr4sjk+fvrtkEL+RoG5YpOqiWrS833jEiktC1Uthyy5/QMNQA==",
-      "path": "questpdf/2026.7.2",
-      "hashPath": "questpdf.2026.7.2.nupkg.sha512"
+      "sha512": "sha512-6c/YtDiZm8NgxnFdUDom+IWGVXKhiwBVJ3cvlyIXZYH7Wp0HaXWoR2XWj/RAsZfjpW7J5LMVc1EF6JnJFouoXQ==",
+      "path": "questpdf/2026.8.0",
+      "hashPath": "questpdf.2026.8.0.nupkg.sha512"
     },
     "Sasheco.Domain/1.0.0": {
       "type": "project",

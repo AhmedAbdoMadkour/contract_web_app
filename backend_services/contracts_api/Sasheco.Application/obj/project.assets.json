@@ -78,7 +78,7 @@
           "buildTransitive/net6.0/_._": {}
         }
       },
-      "QuestPDF/2026.7.2": {
+      "QuestPDF/2026.8.0": {
         "type": "package",
         "compile": {
           "lib/net10.0/QuestPDF.dll": {
@@ -266,10 +266,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "QuestPDF/2026.7.2": {
-      "sha512": "GSPOoErqB4Yh7mnbV4m/ykHOF6erHdm5qyMRHDr4sjk+fvrtkEL+RoG5YpOqiWrS833jEiktC1Uthyy5/QMNQA==",
+    "QuestPDF/2026.8.0": {
+      "sha512": "6c/YtDiZm8NgxnFdUDom+IWGVXKhiwBVJ3cvlyIXZYH7Wp0HaXWoR2XWj/RAsZfjpW7J5LMVc1EF6JnJFouoXQ==",
       "type": "package",
-      "path": "questpdf/2026.7.2",
+      "path": "questpdf/2026.8.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -328,7 +328,7 @@
         "lib/net8.0/QuestPDF.xml",
         "lib/netstandard2.0/QuestPDF.dll",
         "lib/netstandard2.0/QuestPDF.xml",
-        "questpdf.2026.7.2.nupkg.sha512",
+        "questpdf.2026.8.0.nupkg.sha512",
         "questpdf.nuspec",
         "runtimes/linux-arm64/native/libQuestPdfSkia.so",
         "runtimes/linux-arm64/native/libqpdf.so",
@@ -359,7 +359,7 @@
       "FluentValidation >= 12.1.1",
       "FluentValidation.DependencyInjectionExtensions >= 12.1.1",
       "MediatR >= 12.4.1",
-      "QuestPDF >= 2026.7.2",
+      "QuestPDF >= 2026.8.0",
       "Sasheco.Domain >= 1.0.0"
     ]
   },
@@ -431,7 +431,7 @@
           },
           "QuestPDF": {
             "target": "Package",
-            "version": "[2026.7.2, )"
+            "version": "[2026.8.0, )"
           }
         },
         "imports": [
