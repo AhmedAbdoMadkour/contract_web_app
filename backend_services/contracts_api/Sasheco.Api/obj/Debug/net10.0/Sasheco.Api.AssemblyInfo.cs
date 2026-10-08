@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Sasheco.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+02c1183d12b61559e3768f177438e9d5aca49e6c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b0c8b60c857df4cfd5969ce8a44d2ef8d75f9cd5")]
 [assembly: System.Reflection.AssemblyProductAttribute("Sasheco.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Sasheco.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
